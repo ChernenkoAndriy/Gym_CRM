@@ -1,3 +1,6 @@
 spring:
   application:
     name: Gym_CRM
+storage:
+  init:
+    file-path: "classpath:init-data.json"

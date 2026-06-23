@@ -1,13 +1,19 @@
 package com.epam.java.specialization.gym_crm;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.epam.java.specialization.gym_crm.config.ApplicationConfig;
+import com.epam.java.specialization.gym_crm.storage.Storage;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-@SpringBootApplication
 public class GymCrmApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(GymCrmApplication.class, args);
-    }
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ApplicationConfig.class);
 
+        Storage storage = context.getBean(Storage.class);
+        System.out.println("Контекст успішно запущено за допомогою YAML конфігурації!");
+        System.out.println("Завантажено Trainees: " + storage.getTrainees().size());
+        System.out.println("Завантажено Trainers: " + storage.getTrainers().size());
+
+        context.close();
+    }
 }
