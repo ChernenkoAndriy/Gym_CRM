@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class TrainerDao {
+public class TrainerDao{
 
     private static final Logger logger = LoggerFactory.getLogger(TrainerDao.class);
     private Storage storage;

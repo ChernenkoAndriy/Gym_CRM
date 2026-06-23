@@ -1,5 +1,6 @@
 package com.epam.java.specialization.gym_crm.dao;
 
+
 import com.epam.java.specialization.gym_crm.model.Trainee;
 import com.epam.java.specialization.gym_crm.storage.Storage;
 import org.slf4j.Logger;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class TraineeDao {
+public class TraineeDao{
 
     private static final Logger logger = LoggerFactory.getLogger(TraineeDao.class);
     private Storage storage;
