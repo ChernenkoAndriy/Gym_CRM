@@ -8,12 +8,7 @@ public class GymCrmApplication {
 
     public static void main(String[] args) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ApplicationConfig.class);
-
         Storage storage = context.getBean(Storage.class);
-        System.out.println("Контекст успішно запущено за допомогою YAML конфігурації!");
-        System.out.println("Завантажено Trainees: " + storage.getTrainees().size());
-        System.out.println("Завантажено Trainers: " + storage.getTrainers().size());
-
         context.close();
     }
 }
