@@ -10,6 +10,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class StorageInitializer implements BeanPostProcessor {
@@ -21,8 +23,7 @@ public class StorageInitializer implements BeanPostProcessor {
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if (bean instanceof Storage) {
-            Storage storage = (Storage) bean;
+        if (bean instanceof Storage storage) {
             logger.info("BeanPostProcessor: Start of loading initial data from JSON file... {}", initFile.getFilename());
             try {
                 loadData(storage);
@@ -42,38 +43,24 @@ public class StorageInitializer implements BeanPostProcessor {
 
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
+
         StorageDataWrapper dataWrapper = objectMapper.readValue(
                 initFile.getInputStream(),
                 StorageDataWrapper.class
         );
 
-        if (dataWrapper.getTrainees() != null) {
-            for (var trainee : dataWrapper.getTrainees()) {
-                if (trainee.getUsername() == null) {
-                    trainee.setUsername(trainee.getFirstName() + "." + trainee.getLastName());
-                }
-                if (trainee.getPassword() == null) {
-                    trainee.setPassword("defaultPass");
-                }
-                storage.getTrainees().put(trainee.getId(), trainee);
-                logger.debug("Trainee initialized from JSON: {} {}", trainee.getFirstName(), trainee.getLastName());
+        for (Map.Entry<String, List<Object>> entry : dataWrapper.getData().entrySet()) {
+            String jsonKey = entry.getKey();
+            List<Object> rawList = entry.getValue();
+
+            EntityStorage<?, ?> entityStorage = storage.getStorageByJsonKey(jsonKey);
+
+            if (entityStorage != null) {
+                entityStorage.initializeFromRawList(rawList, objectMapper);
+                logger.info("Successfully loaded {} entities into storage via key '{}'", rawList.size(), jsonKey);
+            } else {
+                logger.warn("No storage registered for JSON key '{}'. Skipping data.", jsonKey);
             }
         }
-
-        if (dataWrapper.getTrainers() != null) {
-            for (var trainer : dataWrapper.getTrainers()) {
-                if (trainer.getUsername() == null) {
-                    trainer.setUsername(trainer.getFirstName() + "." + trainer.getLastName());
-                }
-                if (trainer.getPassword() == null) {
-                    trainer.setPassword("defaultPass");
-                }
-                storage.getTrainers().put(trainer.getId(), trainer);
-                logger.debug("Trainer initialized from JSON: {} {}", trainer.getFirstName(), trainer.getLastName());
-            }
-        }
-
-        logger.info("Storage has been successfully initialized from JSON. \n   Trainee count: {} \n   Trainers count: {}",
-                storage.getTrainees().size(), storage.getTrainers().size());
     }
 }
