@@ -1,0 +1,35 @@
+plugins {
+    java
+}
+
+group = "com.epam.java.specialization"
+version = "0.0.1-SNAPSHOT"
+description = "Gym_CRM"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(26)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.springframework:spring-context:6.1.10")
+
+    implementation("org.slf4j:slf4j-api:2.0.13")
+    implementation("ch.qos.logback:logback-classic:1.5.6")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.0")
+    testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.12.0")
+
+    testImplementation("org.springframework:spring-test:6.1.10")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
