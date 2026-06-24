@@ -23,20 +23,43 @@
       "firstName": "John",
       "lastName": "Smith",
       "isActive": true,
-      "specialization": {
-        "id": 1,
-        "trainingTypeName": "Yoga"
-      }
+      "trainingTypeId": 1
     },
     {
       "id": 2,
       "firstName": "Elena",
       "lastName": "Kostova",
       "isActive": true,
-      "specialization": {
-        "id": 2,
-        "trainingTypeName": "Crossfit"
-      }
+      "trainingTypeId": 2
+    }
+  ],
+  "trainings": [
+    {
+      "id": 1,
+      "traineeId": 1,
+      "trainerId": 1,
+      "trainingName": "Morning Yoga Session",
+      "trainingTypeId": 1,
+      "trainingDate": "2026-06-25T09:00:00.000+00:00",
+      "trainingDuration": 60
+    },
+    {
+      "id": 2,
+      "traineeId": 2,
+      "trainerId": 2,
+      "trainingName": "Intense Crossfit WOD",
+      "trainingTypeId": 2,
+      "trainingDate": "2026-06-26T18:30:00.000+00:00",
+      "trainingDuration": 45
+    },
+    {
+      "id": 3,
+      "traineeId": 1,
+      "trainerId": 2,
+      "trainingName": "Cardio Stamina Training",
+      "trainingTypeId": 2,
+      "trainingDate": "2026-06-28T10:00:00.000+00:00",
+      "trainingDuration": 50
     }
   ]
 }

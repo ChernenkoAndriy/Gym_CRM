@@ -1,83 +1,113 @@
 package com.epam.java.specialization.gym_crm.facade;
 
+import com.epam.java.specialization.gym_crm.dto.TraineeCreateDto;
+import com.epam.java.specialization.gym_crm.dto.TraineeResponseDto;
+import com.epam.java.specialization.gym_crm.dto.TraineeUpdateDto;
+import com.epam.java.specialization.gym_crm.dto.TrainerCreateDto;
+import com.epam.java.specialization.gym_crm.dto.TrainerResponseDto;
+import com.epam.java.specialization.gym_crm.dto.TrainerUpdateDto;
+import com.epam.java.specialization.gym_crm.dto.TrainingCreateDto;
+import com.epam.java.specialization.gym_crm.dto.TrainingResponseDto;
+import com.epam.java.specialization.gym_crm.mapper.interfaces.ITraineeMapper;
+import com.epam.java.specialization.gym_crm.mapper.interfaces.ITrainerMapper;
+import com.epam.java.specialization.gym_crm.mapper.interfaces.ITrainingMapper;
 import com.epam.java.specialization.gym_crm.model.Trainee;
 import com.epam.java.specialization.gym_crm.model.Trainer;
 import com.epam.java.specialization.gym_crm.model.Training;
-import com.epam.java.specialization.gym_crm.service.TraineeService;
-import com.epam.java.specialization.gym_crm.service.TrainerService;
-import com.epam.java.specialization.gym_crm.service.TrainingService;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.epam.java.specialization.gym_crm.model.TrainingType;
+import com.epam.java.specialization.gym_crm.service.interfaces.ITraineeService;
+import com.epam.java.specialization.gym_crm.service.interfaces.ITrainerService;
+import com.epam.java.specialization.gym_crm.service.interfaces.ITrainingService;
+import com.epam.java.specialization.gym_crm.service.interfaces.ITrainingTypeService;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
 
 @Component
-@RequiredArgsConstructor
 public class GymFacade {
 
-    private static final Logger logger = LoggerFactory.getLogger(GymFacade.class);
+    private final ITraineeService traineeService;
+    private final ITrainerService trainerService;
+    private final ITrainingService trainingService;
+    private final ITrainingTypeService trainingTypeService;
 
-    private final TraineeService traineeService;
-    private final TrainerService trainerService;
-    private final TrainingService trainingService;
+    private final ITraineeMapper traineeMapper;
+    private final ITrainerMapper trainerMapper;
+    private final ITrainingMapper trainingMapper;
 
-    public Trainee createTrainee(Trainee trainee) {
-        logger.info("Facade: Request to create Trainee profile");
-        return traineeService.createTrainee(trainee);
+    public GymFacade(ITraineeService traineeService,
+                     ITrainerService trainerService,
+                     ITrainingService trainingService,
+                     ITrainingTypeService trainingTypeService,
+                     ITraineeMapper traineeMapper,
+                     ITrainerMapper trainerMapper,
+                     ITrainingMapper trainingMapper) {
+        this.traineeService = traineeService;
+        this.trainerService = trainerService;
+        this.trainingService = trainingService;
+        this.trainingTypeService = trainingTypeService;
+        this.traineeMapper = traineeMapper;
+        this.trainerMapper = trainerMapper;
+        this.trainingMapper = trainingMapper;
     }
 
-    public Trainee updateTrainee(Trainee trainee) {
-        logger.info("Facade: Request to update Trainee profile with ID: {}", trainee.getId());
-        return traineeService.updateTrainee(trainee);
+    public TraineeResponseDto createTrainee(TraineeCreateDto dto) {
+        Trainee trainee = traineeMapper.toEntityFromCreate(dto);
+        Trainee saved = traineeService.create(trainee);
+        return traineeMapper.toResponseDto(saved);
+    }
+
+    public TraineeResponseDto updateTrainee(TraineeUpdateDto dto) {
+        Trainee trainee = traineeMapper.toEntityFromUpdate(dto);
+        Trainee updated = traineeService.update(trainee);
+        return traineeMapper.toResponseDto(updated);
     }
 
     public void deleteTrainee(Long id) {
-        logger.info("Facade: Request to delete Trainee profile with ID: {}", id);
-        traineeService.deleteTrainee(id);
+        traineeService.delete(id);
     }
 
-    public Optional<Trainee> getTraineeById(Long id) {
-        logger.info("Facade: Request to select Trainee profile by ID: {}", id);
-        return traineeService.getTraineeById(id);
+    public Optional<TraineeResponseDto> getTrainee(Long id) {
+        return traineeService.getById(id).map(traineeMapper::toResponseDto);
     }
 
-    public List<Trainee> getAllTrainees() {
-        return traineeService.getAllTrainees();
+    public TrainerResponseDto createTrainer(TrainerCreateDto dto) {
+        Trainer trainer = trainerMapper.toEntityFromCreate(dto);
+        Trainer saved = trainerService.create(trainer);
+        return getTrainerResponseWithRelations(saved);
     }
 
-    public Trainer createTrainer(Trainer trainer) {
-        logger.info("Facade: Request to create Trainer profile");
-        return trainerService.createTrainer(trainer);
+    public TrainerResponseDto updateTrainer(TrainerUpdateDto dto) {
+        Trainer trainer = trainerMapper.toEntityFromUpdate(dto);
+        Trainer updated = trainerService.update(trainer);
+        return getTrainerResponseWithRelations(updated);
     }
 
-    public Trainer updateTrainer(Trainer trainer) {
-        logger.info("Facade: Request to update Trainer profile with ID: {}", trainer.getId());
-        return trainerService.updateTrainer(trainer);
+    public Optional<TrainerResponseDto> getTrainer(Long id) {
+        return trainerService.getById(id).map(this::getTrainerResponseWithRelations);
     }
 
-    public Optional<Trainer> getTrainerById(Long id) {
-        logger.info("Facade: Request to select Trainer profile by ID: {}", id);
-        return trainerService.getTrainerById(id);
+    public TrainingResponseDto createTraining(TrainingCreateDto dto) {
+        Training training = trainingMapper.toEntityFromCreate(dto);
+        Training saved = trainingService.create(training);
+        return assembleTrainingResponse(saved);
     }
 
-    public List<Trainer> getAllTrainers() {
-        return trainerService.getAllTrainers();
+    public Optional<TrainingResponseDto> getTraining(Long id) {
+        return trainingService.getById(id).map(this::assembleTrainingResponse);
     }
 
-    public Training createTraining(Training training) {
-        logger.info("Facade: Request to create Training");
-        return trainingService.createTraining(training);
+    private TrainingResponseDto assembleTrainingResponse(Training training) {
+        Trainee trainee = traineeService.getById(training.getTraineeId()).orElse(null);
+        Trainer trainer = trainerService.getById(training.getTrainerId()).orElse(null);
+        TrainingType trainingType = trainingTypeService.getById(training.getTrainingTypeId()).orElse(null);
+
+        return trainingMapper.toResponseDto(training, trainee, trainer, trainingType);
     }
 
-    public Optional<Training> getTrainingById(Long id) {
-        logger.info("Facade: Request to select Training by ID: {}", id);
-        return trainingService.getTrainingById(id);
-    }
-
-    public List<Training> getAllTrainings() {
-        return trainingService.getAllTrainings();
+    private TrainerResponseDto getTrainerResponseWithRelations(Trainer trainer) {
+        if (trainer == null) return null;
+        TrainingType trainingType = trainingTypeService.getById(trainer.getTrainingTypeId()).orElse(null);
+        return trainerMapper.toResponseDto(trainer, trainingType);
     }
 }

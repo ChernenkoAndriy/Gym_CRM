@@ -1,5 +1,6 @@
 package com.epam.java.specialization.gym_crm.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -16,5 +17,5 @@ public abstract class User extends AbstractEntity<Long> {
     private String lastName;
     private String username;
     private String password;
-    private boolean isActive;
+    private Boolean isActive;
 }

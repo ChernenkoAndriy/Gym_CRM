@@ -5,7 +5,6 @@ import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.core.io.support.PropertySourceFactory;
-
 import java.io.IOException;
 import java.util.Properties;
 
@@ -17,12 +16,9 @@ public class YamlPropertySourceFactory implements PropertySourceFactory {
         factory.setResources(resource.getResource());
 
         Properties properties = factory.getObject();
-        if (properties == null) {
-            throw new IOException("Failed to load YAML file: " + resource.getResource().getFilename());
-        }
 
         return new PropertiesPropertySource(
-                name != null ? name : resource.getResource().getFilename(),
+                (name != null ? name : resource.getResource().getFilename()),
                 properties
         );
     }
