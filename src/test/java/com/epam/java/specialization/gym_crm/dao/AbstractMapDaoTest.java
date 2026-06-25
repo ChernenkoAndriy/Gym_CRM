@@ -8,6 +8,7 @@ import java.util.HashMap;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,7 +23,7 @@ public abstract class AbstractMapDaoTest<T extends AbstractEntity<Long>> {
 
     @BeforeEach
     void setUpAbstract() {
-        testStorage = new HashMap<>();
+        testStorage = new ConcurrentHashMap<>();
         dao = getDaoInstance();
         dao.setStorage(testStorage);
     }
@@ -72,5 +73,37 @@ public abstract class AbstractMapDaoTest<T extends AbstractEntity<Long>> {
 
         assertFalse(testStorage.containsKey(saved.getId()));
         assertTrue(dao.findById(saved.getId()).isEmpty());
+    }
+
+    @Test
+    void testCreate_ShouldBeThreadSafe_WhenMultipleThreadsInsertSimultaneously() throws InterruptedException {
+        int threadCount = 10;
+        int insertsPerThread = 100;
+        int totalExpectedEntities = threadCount * insertsPerThread;
+
+        java.util.concurrent.ExecutorService executorService = java.util.concurrent.Executors.newFixedThreadPool(threadCount);
+        java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+
+        for (int i = 0; i < threadCount; i++) {
+            executorService.execute(() -> {
+                try {
+                    latch.await();
+                    for (int j = 0; j < insertsPerThread; j++) {
+                        T entity = createSampleEntity();
+                        dao.create(entity);
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+        }
+
+        latch.countDown();
+        executorService.shutdown();
+        boolean finished = executorService.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS);
+
+        assertTrue(finished, "All threads should finish within timeout");
+        assertEquals(totalExpectedEntities, testStorage.size(),
+                "Storage size must exactly match total inserted entities count without any overwrites or ID collisions");
     }
 }

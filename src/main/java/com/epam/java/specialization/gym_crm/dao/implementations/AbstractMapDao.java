@@ -8,20 +8,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class AbstractMapDao<T extends AbstractEntity<Long>> implements IBaseDao<T, Long> {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected Map<Long, T> storage;
+    private final AtomicLong idSequence = new AtomicLong(0);
 
     public void setStorage(Map<Long, T> storage) {
         this.storage = storage;
+        if (storage != null && !storage.isEmpty()) {
+            long maxId = storage.keySet().stream().max(Long::compare).orElse(0L);
+            idSequence.set(maxId);
+        }
     }
 
     @Override
     public T create(T entity) {
         if (entity.getId() == null) {
-            long nextId = storage.keySet().stream().max(Long::compare).orElse(0L) + 1;
+            long nextId = idSequence.incrementAndGet();
             entity.setId(nextId);
         }
         storage.put(entity.getId(), entity);

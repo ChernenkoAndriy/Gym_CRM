@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class AbstractUserService<T extends User> {
 
@@ -14,15 +16,20 @@ public abstract class AbstractUserService<T extends User> {
 
     protected void prepareUserProfile(T user, List<? extends User> existingUsers) {
         String baseUsername = user.getFirstName() + "." + user.getLastName();
+
+        Set<String> takenUsernames = existingUsers.stream()
+                .map(User::getUsername)
+                .filter(username -> username != null)
+                .collect(Collectors.toSet());
+
         String finalUsername = baseUsername;
 
-        long count = existingUsers.stream()
-                .map(User::getUsername)
-                .filter(username -> username != null && username.startsWith(baseUsername))
-                .count();
-
-        if (count > 0) {
-            finalUsername = baseUsername + count;
+        if (takenUsernames.contains(baseUsername)) {
+            int suffix = 1;
+            while (takenUsernames.contains(baseUsername + suffix)) {
+                suffix++;
+            }
+            finalUsername = baseUsername + suffix;
         }
 
         user.setUsername(finalUsername);

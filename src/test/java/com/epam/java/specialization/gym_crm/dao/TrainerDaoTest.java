@@ -16,7 +16,7 @@ class TrainerDaoTest extends AbstractMapDaoTest<Trainer> {
         return Trainer.builder()
                 .firstName("Elena")
                 .lastName("Kostova")
-                .trainingTypeId(1L) // ID спеціалізації
+                .trainingTypeId(1L) 
                 .build();
     }
 

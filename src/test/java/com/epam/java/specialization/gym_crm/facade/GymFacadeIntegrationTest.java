@@ -84,7 +84,7 @@ class GymFacadeIntegrationTest {
                 .lastName("Kravets")
                 .address("Odesa, Deribasivska St, 1")
                 .dateOfBirth(fixedBirthDate)
-                .isActive(false) // Деактивуємо
+                .isActive(false) 
                 .build();
 
         TraineeResponseDto updated = gymFacade.updateTrainee(updateDto);
