@@ -11,9 +11,8 @@ import java.util.Map;
 public class TrainerDao extends AbstractMapDao<Trainer> implements ITrainerDao {
 
     @Autowired
-    @Qualifier("trainerStorage")
     @Override
-    public void setStorage(Map<Long, Trainer> storage) {
+    public void setStorage(@Qualifier("trainerStorage") Map<Long, Trainer> storage) {
         super.setStorage(storage);
     }
 }

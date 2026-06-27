@@ -1,0 +1,3 @@
+storage:
+  init:
+    file-path: "classpath:init-data-test.json"

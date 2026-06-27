@@ -10,12 +10,4 @@ import java.util.Properties;
 @ComponentScan(basePackages = "com.epam.java.specialization.gym_crm")
 public class TestConfig {
 
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
-        Properties properties = new Properties();
-        properties.setProperty("storage.init.file-path", "classpath:init-data.json");
-        configurer.setProperties(properties);
-        return configurer;
-    }
 }

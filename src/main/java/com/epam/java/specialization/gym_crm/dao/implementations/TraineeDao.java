@@ -11,9 +11,8 @@ import java.util.Map;
 public class TraineeDao extends AbstractMapDao<Trainee> implements ITraineeDao {
 
     @Autowired
-    @Qualifier("traineeStorage")
     @Override
-    public void setStorage(Map<Long, Trainee> storage) {
+    public void setStorage(@Qualifier("traineeStorage") Map<Long, Trainee> storage) {
         super.setStorage(storage);
     }
 }
