@@ -3,14 +3,11 @@ package com.epam.java.specialization.gym_crm.service.implementations;
 import com.epam.java.specialization.gym_crm.dao.intefaces.ITrainingTypeDao;
 import com.epam.java.specialization.gym_crm.model.TrainingType;
 import com.epam.java.specialization.gym_crm.service.interfaces.ITrainingTypeService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -23,9 +20,6 @@ public class TrainingTypeService implements ITrainingTypeService {
     private final List<String> ALLOWED_CONSTANTS = Arrays.asList("Yoga", "Crossfit", "Fitness");
     private ITrainingTypeDao trainingTypeDao;
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
     @Autowired
     public void setTrainingTypeDao(ITrainingTypeDao trainingTypeDao) {
         this.trainingTypeDao = trainingTypeDao;
@@ -34,21 +28,15 @@ public class TrainingTypeService implements ITrainingTypeService {
     @Override
     public TrainingType create(TrainingType entity) {
         logger.info("Checking training type: {}", entity.getTrainingTypeName());
-        List<TrainingType> existing = entityManager.createQuery(
-                        "SELECT t FROM TrainingType t WHERE t.trainingTypeName = :name", TrainingType.class)
-                .setParameter("name", entity.getTrainingTypeName())
-                .getResultList();
-
-        if (!existing.isEmpty()) {
-            logger.info("Training type '{}' exists. Returning existing record.", entity.getTrainingTypeName());
-            return existing.get(0);
-        }
-
-        if (ALLOWED_CONSTANTS.contains(entity.getTrainingTypeName())) {
-            return trainingTypeDao.create(entity);
-        }
-
-        throw new UnsupportedOperationException("Creation of new training types from the application is strictly prohibited.");
+        return trainingTypeDao.findAll().stream()
+                .filter(t -> t.getTrainingTypeName().equals(entity.getTrainingTypeName()))
+                .findFirst()
+                .orElseGet(() -> {
+                    if (ALLOWED_CONSTANTS.contains(entity.getTrainingTypeName())) {
+                        return trainingTypeDao.create(entity);
+                    }
+                    throw new UnsupportedOperationException("Creation of new training types from the application is strictly prohibited.");
+                });
     }
 
     @Override

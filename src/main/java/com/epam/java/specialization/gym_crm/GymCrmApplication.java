@@ -3,14 +3,14 @@ package com.epam.java.specialization.gym_crm;
 import com.epam.java.specialization.gym_crm.config.ApplicationConfig;
 import com.epam.java.specialization.gym_crm.dto.*;
 import com.epam.java.specialization.gym_crm.facade.GymFacade;
+import com.epam.java.specialization.gym_crm.model.Trainee;
+import com.epam.java.specialization.gym_crm.model.Trainer;
 import com.epam.java.specialization.gym_crm.model.TrainingType;
-import com.epam.java.specialization.gym_crm.service.interfaces.ITraineeService;
-import com.epam.java.specialization.gym_crm.service.interfaces.ITrainerService;
-import com.epam.java.specialization.gym_crm.service.interfaces.ITrainingService;
+import com.epam.java.specialization.gym_crm.dao.intefaces.ITraineeDao;
+import com.epam.java.specialization.gym_crm.dao.intefaces.ITrainerDao;
 import com.epam.java.specialization.gym_crm.service.interfaces.ITrainingTypeService;
 import com.epam.java.specialization.gym_crm.storage.StorageDataInitializer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -25,16 +25,12 @@ public class GymCrmApplication {
             System.err.println("Failed to execute data initializer:");
             e.printStackTrace();
         }
-
         GymFacade facade = context.getBean(GymFacade.class);
         ITrainingTypeService typeService = context.getBean(ITrainingTypeService.class);
-        ITraineeService traineeService = context.getBean(ITraineeService.class);
-        ITrainerService trainerService = context.getBean(ITrainerService.class);
-        ITrainingService trainingService = context.getBean(ITrainingService.class);
-
+        ITraineeDao traineeDao = context.getBean(ITraineeDao.class);
+        ITrainerDao trainerDao = context.getBean(ITrainerDao.class);
         try {
             System.out.println("=== STARTING INTEGRATION SCENARIO ===");
-
             TrainingType yogaType = typeService.create(TrainingType.builder().trainingTypeName("Yoga").build());
             TrainingType fitnessType = typeService.create(TrainingType.builder().trainingTypeName("Crossfit").build());
             System.out.println("Initialized Training Types: Yoga ID=" + yogaType.getId() + ", Fitness ID=" + fitnessType.getId());
@@ -47,10 +43,10 @@ public class GymCrmApplication {
                     .build();
             TraineeResponseDto traineeRes = facade.createTrainee(traineeDto);
             String traineeUsername = traineeRes.getUsername();
-            String traineePassword = traineeService.getByUsername(traineeUsername)
-                    .orElseThrow(() -> new IllegalStateException("Trainee not found"))
-                    .getUser()
-                    .getPassword();
+
+            Trainee rawTrainee = traineeDao.findByUsername(traineeUsername)
+                    .orElseThrow(() -> new IllegalStateException("Trainee not found in DB"));
+            String traineePassword = rawTrainee.getUser().getPassword();
             System.out.println("CREATED TRAINEE: Username=" + traineeUsername + " | Password=" + traineePassword);
 
             TrainerCreateDto trainerDto = TrainerCreateDto.builder()
@@ -61,13 +57,9 @@ public class GymCrmApplication {
             TrainerResponseDto trainerRes = facade.createTrainer(trainerDto);
             String trainerUsername = trainerRes.getUsername();
 
-            List<com.epam.java.specialization.gym_crm.model.Trainer> trainers = trainerService.getAvailableTrainersNotAssignedToTrainee(traineeUsername);
-            String trainerPassword = trainers.stream()
-                    .filter(t -> t.getUser().getUsername().equals(trainerUsername))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("Trainer not found"))
-                    .getUser()
-                    .getPassword();
+            Trainer rawTrainer = trainerDao.findByUsername(trainerUsername)
+                    .orElseThrow(() -> new IllegalStateException("Trainer not found in DB"));
+            String trainerPassword = rawTrainer.getUser().getPassword();
             System.out.println("CREATED TRAINER: Username=" + trainerUsername + " | Password=" + trainerPassword);
 
             System.out.println("\n--- Testing Trainee Authentication ---");
@@ -112,14 +104,12 @@ public class GymCrmApplication {
             System.out.println("\n--- Testing Toggle Activation ---");
             facade.toggleTrainerActivation(trainerUsername, false, trainerUsername, trainerPassword);
             System.out.println("SUCCESS: Trainer status changed to false.");
-
             try {
                 facade.toggleTrainerActivation(trainerUsername, false, trainerUsername, trainerPassword);
                 System.out.println("ERROR: Non-idempotent action should have failed!");
             } catch (IllegalStateException e) {
                 System.out.println("SUCCESS: Caught expected IllegalStateException for identical status: " + e.getMessage());
             }
-
             facade.toggleTrainerActivation(trainerUsername, true, trainerUsername, trainerPassword);
             System.out.println("SUCCESS: Trainer status restored to true.");
 
@@ -167,13 +157,12 @@ public class GymCrmApplication {
             facade.deleteTrainee(traineeUsername, traineeUsername, traineePassword);
             System.out.println("Trainee record with username '" + traineeUsername + "' deleted.");
 
-            boolean trainingExists = trainingService.getById(trainingId).isPresent();
+            boolean trainingExists = context.getBean(com.epam.java.specialization.gym_crm.service.interfaces.ITrainingService.class).getById(trainingId).isPresent();
             if (!trainingExists) {
                 System.out.println("SUCCESS: Training record with ID " + trainingId + " was automatically deleted via cascade option.");
             } else {
                 System.out.println("ERROR: Training record still exists in database! Cascade delete failed.");
             }
-
             System.out.println("\n=== INTEGRATION SCENARIO COMPLETE: ALL UPDATED LAYERS ARE FUNCTIONAL ===");
         } catch (Exception e) {
             System.err.println("CRITICAL: Integration script execution aborted due to unexpected error:");
