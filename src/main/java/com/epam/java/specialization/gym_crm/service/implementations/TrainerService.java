@@ -7,12 +7,22 @@ import com.epam.java.specialization.gym_crm.model.User;
 import com.epam.java.specialization.gym_crm.service.interfaces.ITrainerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import com.epam.java.specialization.gym_crm.model.Training;
+import com.epam.java.specialization.gym_crm.model.Trainee;
+import java.util.Date;
 
 @Service
-public class TrainerService extends AbstractUserService<Trainer> implements ITrainerService {
+@Transactional
+public class TrainerService extends AbstractUserService implements ITrainerService {
 
     private ITrainerDao trainerDao;
     private ITraineeDao traineeDao;
@@ -29,13 +39,9 @@ public class TrainerService extends AbstractUserService<Trainer> implements ITra
 
     @Override
     public Trainer create(Trainer trainer) {
-        logger.debug("Attempting to create trainer profile: {} {}", trainer.getFirstName(), trainer.getLastName());
-
-        List<User> allUsers = new ArrayList<>();
-        allUsers.addAll(traineeDao.findAll());
-        allUsers.addAll(trainerDao.findAll());
-
-        prepareUserProfile(trainer, allUsers);
+        logger.debug("Attempting to create trainer profile: {} {}", trainer.getUser().getFirstName(), trainer.getUser().getLastName());
+        
+        prepareUserProfile(trainer.getUser());
         return trainerDao.create(trainer);
     }
 
@@ -46,8 +52,59 @@ public class TrainerService extends AbstractUserService<Trainer> implements ITra
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Trainer> getById(Long id) {
         logger.debug("Selecting trainer profile with ID: {}", id);
         return trainerDao.findById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Training> getTrainingsByCriteria(String username, Date fromDate, Date toDate, String traineeName) {
+        logger.debug("Fetching trainer trainings by criteria for username: {}", username);
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Training> query = cb.createQuery(Training.class);
+        Root<Training> root = query.from(Training.class);
+
+        
+        jakarta.persistence.criteria.Fetch<Training, Trainee> traineeFetch = root.fetch("trainee", jakarta.persistence.criteria.JoinType.INNER);
+        traineeFetch.fetch("user", jakarta.persistence.criteria.JoinType.INNER);
+
+        jakarta.persistence.criteria.Fetch<Training, Trainer> trainerFetch = root.fetch("trainer", jakarta.persistence.criteria.JoinType.INNER);
+        trainerFetch.fetch("user", jakarta.persistence.criteria.JoinType.INNER);
+
+        root.fetch("trainingType", jakarta.persistence.criteria.JoinType.INNER);
+
+        
+        Join<Training, Trainer> trainerJoin = (Join<Training, Trainer>) (Join<?, ?>) trainerFetch;
+        Join<Trainer, User> trainerUserJoin = trainerJoin.join("user");
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(cb.equal(trainerUserJoin.get("username"), username));
+
+        if (fromDate != null) {
+            predicates.add(cb.greaterThanOrEqualTo(root.get("trainingDate"), fromDate));
+        }
+        if (toDate != null) {
+            predicates.add(cb.lessThanOrEqualTo(root.get("trainingDate"), toDate));
+        }
+        if (traineeName != null && !traineeName.trim().isEmpty()) {
+            Join<Training, Trainee> traineeJoin = (Join<Training, Trainee>) (Join<?, ?>) traineeFetch;
+            Join<Trainee, User> traineeUserJoin = traineeJoin.join("user");
+            predicates.add(cb.equal(traineeUserJoin.get("username"), traineeName));
+        }
+
+        query.select(root).distinct(true).where(predicates.toArray(new Predicate[0]));
+        return entityManager.createQuery(query).getResultList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Trainer> getAvailableTrainersNotAssignedToTrainee(String traineeUsername) {
+        logger.debug("Fetching available trainers not assigned to trainee: {}", traineeUsername);
+        String jpql = "SELECT t FROM Trainer t WHERE t.user.isActive = true AND NOT EXISTS " +
+                "(SELECT 1 FROM Trainee tr JOIN tr.trainers trt WHERE tr.user.username = :username AND trt.id = t.id)";
+        return entityManager.createQuery(jpql, Trainer.class)
+                .setParameter("username", traineeUsername)
+                .getResultList();
     }
 }

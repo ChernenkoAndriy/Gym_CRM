@@ -2,17 +2,12 @@ package com.epam.java.specialization.gym_crm.dao.implementations;
 
 import com.epam.java.specialization.gym_crm.dao.intefaces.ITrainingDao;
 import com.epam.java.specialization.gym_crm.model.Training;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import java.util.Map;
 
 @Repository
-public class TrainingDao extends AbstractMapDao<Training> implements ITrainingDao {
+public class TrainingDao extends AbstractJpaDao<Training> implements ITrainingDao {
 
-    @Autowired
-    @Override
-    public void setStorage(@Qualifier("trainingStorage") Map<Long, Training> storage) {
-        super.setStorage(storage);
+    public TrainingDao() {
+        super(Training.class);
     }
 }

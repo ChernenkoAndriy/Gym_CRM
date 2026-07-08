@@ -2,6 +2,8 @@ package com.epam.java.specialization.gym_crm.mapper.implementations;
 
 import com.epam.java.specialization.gym_crm.dto.TrainingCreateDto;
 import com.epam.java.specialization.gym_crm.dto.TrainingResponseDto;
+import com.epam.java.specialization.gym_crm.mapper.interfaces.ITraineeMapper;
+import com.epam.java.specialization.gym_crm.mapper.interfaces.ITrainerMapper;
 import com.epam.java.specialization.gym_crm.mapper.interfaces.ITrainingMapper;
 import com.epam.java.specialization.gym_crm.model.Trainee;
 import com.epam.java.specialization.gym_crm.model.Trainer;
@@ -12,28 +14,35 @@ import org.springframework.stereotype.Component;
 @Component
 public class TrainingMapper implements ITrainingMapper {
 
-    private final TraineeMapper traineeMapper;
-    private final TrainerMapper trainerMapper;
+    private final ITraineeMapper traineeMapper;
+    private final ITrainerMapper trainerMapper;
 
-    public TrainingMapper(TraineeMapper traineeMapper, TrainerMapper trainerMapper) {
+    public TrainingMapper(ITraineeMapper traineeMapper, ITrainerMapper trainerMapper) {
         this.traineeMapper = traineeMapper;
         this.trainerMapper = trainerMapper;
     }
 
-    public Training toEntityFromCreate(TrainingCreateDto dto) {
-        if (dto == null) return null;
+    @Override
+    public Training toEntityFromCreate(TrainingCreateDto dto, Trainee trainee, Trainer trainer, TrainingType trainingType) {
+        if (dto == null) {
+            return null;
+        }
+
         return Training.builder()
-                .traineeId(dto.getTraineeId())
-                .trainerId(dto.getTrainerId())
+                .trainee(trainee)
+                .trainer(trainer)
+                .trainingType(trainingType)
                 .trainingName(dto.getTrainingName())
-                .trainingTypeId(dto.getTrainingTypeId())
                 .trainingDate(dto.getTrainingDate())
                 .trainingDuration(dto.getTrainingDuration())
                 .build();
     }
 
+    @Override
     public TrainingResponseDto toResponseDto(Training training, Trainee trainee, Trainer trainer, TrainingType trainingType) {
-        if (training == null) return null;
+        if (training == null) {
+            return null;
+        }
 
         return TrainingResponseDto.builder()
                 .id(training.getId())

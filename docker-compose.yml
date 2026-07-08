@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  gym-postgres:
+    image: postgres:16-alpine
+    container_name: gym_crm_postgres
+    environment:
+      POSTGRES_DB: gym_crm_db
+      POSTGRES_USER: gym_admin
+      POSTGRES_PASSWORD: gym_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:

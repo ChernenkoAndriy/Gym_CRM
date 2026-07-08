@@ -7,8 +7,9 @@ import com.epam.java.specialization.gym_crm.model.Trainer;
 import com.epam.java.specialization.gym_crm.model.Training;
 import com.epam.java.specialization.gym_crm.model.TrainingType;
 
-public interface ITrainingMapper extends
-        ICreateMapper<TrainingCreateDto, Training> {
+public interface ITrainingMapper {
+
+    Training toEntityFromCreate(TrainingCreateDto dto, Trainee trainee, Trainer trainer, TrainingType trainingType);
 
     TrainingResponseDto toResponseDto(Training training, Trainee trainee, Trainer trainer, TrainingType trainingType);
 }

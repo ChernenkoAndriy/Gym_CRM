@@ -2,64 +2,78 @@
   "trainees": [
     {
       "id": 1,
-      "firstName": "Alex",
-      "lastName": "Smith",
-      "isActive": true,
       "dateOfBirth": "2005-05-12",
-      "address": "Kyiv, Khreshchatyk 1"
+      "address": "Kyiv, Khreshchatyk 1",
+      "user": {
+        "firstName": "Alex",
+        "lastName": "Smith",
+        "isActive": true
+      }
     },
     {
       "id": 2,
-      "firstName": "John",
-      "lastName": "Doe",
-      "isActive": true,
       "dateOfBirth": "2001-11-23",
-      "address": "Lviv, Stepana Bandery 12"
+      "address": "Lviv, Stepana Bandery 12",
+      "user": {
+        "firstName": "John",
+        "lastName": "Doe",
+        "isActive": true
+      }
     }
   ],
   "trainers": [
     {
       "id": 1,
-      "firstName": "John",
-      "lastName": "Smith",
-      "isActive": true,
-      "trainingTypeId": 1
+      "user": {
+        "firstName": "John",
+        "lastName": "Smith",
+        "isActive": true
+      },
+      "specialization": {
+        "id": 1,
+        "trainingTypeName": "Yoga"
+      }
     },
     {
       "id": 2,
-      "firstName": "Elena",
-      "lastName": "Kostova",
-      "isActive": true,
-      "trainingTypeId": 2
+      "user": {
+        "firstName": "Elena",
+        "lastName": "Kostova",
+        "isActive": true
+      },
+      "specialization": {
+        "id": 2,
+        "trainingTypeName": "Crossfit"
+      }
     }
   ],
   "trainings": [
     {
       "id": 1,
-      "traineeId": 1,
-      "trainerId": 1,
       "trainingName": "Morning Yoga Session",
-      "trainingTypeId": 1,
       "trainingDate": "2026-06-25T09:00:00.000+00:00",
-      "trainingDuration": 60
+      "trainingDuration": 60,
+      "trainee": { "id": 1 },
+      "trainer": { "id": 1 },
+      "trainingType": { "id": 1, "trainingTypeName": "Yoga" }
     },
     {
       "id": 2,
-      "traineeId": 2,
-      "trainerId": 2,
       "trainingName": "Intense Crossfit WOD",
-      "trainingTypeId": 2,
       "trainingDate": "2026-06-26T18:30:00.000+00:00",
-      "trainingDuration": 45
+      "trainingDuration": 45,
+      "trainee": { "id": 2 },
+      "trainer": { "id": 2 },
+      "trainingType": { "id": 2, "trainingTypeName": "Crossfit" }
     },
     {
       "id": 3,
-      "traineeId": 1,
-      "trainerId": 2,
       "trainingName": "Cardio Stamina Training",
-      "trainingTypeId": 2,
       "trainingDate": "2026-06-28T10:00:00.000+00:00",
-      "trainingDuration": 50
+      "trainingDuration": 50,
+      "trainee": { "id": 1 },
+      "trainer": { "id": 2 },
+      "trainingType": { "id": 2, "trainingTypeName": "Crossfit" }
     }
   ]
 }

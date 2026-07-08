@@ -1,32 +1,38 @@
 package com.epam.java.specialization.gym_crm.service.implementations;
 
 import com.epam.java.specialization.gym_crm.model.User;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.security.SecureRandom;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-public abstract class AbstractUserService<T extends User> {
+public abstract class AbstractUserService {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
+
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    protected void prepareUserProfile(T user, List<? extends User> existingUsers) {
+    @PersistenceContext
+    protected EntityManager entityManager;
+
+    @Transactional
+    protected void prepareUserProfile(User user) {
         String baseUsername = user.getFirstName() + "." + user.getLastName();
 
-        Set<String> takenUsernames = existingUsers.stream()
-                .map(User::getUsername)
-                .filter(username -> username != null)
-                .collect(Collectors.toSet());
+        List<String> existingUsernames = entityManager.createQuery(
+                        "SELECT u.username FROM User u WHERE u.username LIKE :base", String.class)
+                .setParameter("base", baseUsername + "%")
+                .getResultList();
 
         String finalUsername = baseUsername;
-
-        if (takenUsernames.contains(baseUsername)) {
+        if (existingUsernames.contains(baseUsername)) {
             int suffix = 1;
-            while (takenUsernames.contains(baseUsername + suffix)) {
+            while (existingUsernames.contains(baseUsername + suffix)) {
                 suffix++;
             }
             finalUsername = baseUsername + suffix;
@@ -35,6 +41,43 @@ public abstract class AbstractUserService<T extends User> {
         user.setUsername(finalUsername);
         user.setPassword(generateRandomPassword());
         logger.info("Generated profile for user: username={}, password=[PROTECTED]", finalUsername);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean authenticate(String username, String password) {
+        logger.debug("Attempting authentication for username: {}", username);
+
+        List<Long> count = entityManager.createQuery(
+                        "SELECT COUNT(u) FROM User u WHERE u.username = :username AND u.password = :password", Long.class)
+                .setParameter("username", username)
+                .setParameter("password", password)
+                .getResultList();
+
+        boolean success = count != null && !count.isEmpty() && count.get(0) > 0;
+        if (success) {
+            logger.info("Authentication successful for username: {}", username);
+        } else {
+            logger.warn("Authentication failed for username: {}", username);
+        }
+        return success;
+    }
+
+    @Transactional
+    public void changePassword(String username, String newPassword) {
+        logger.info("Changing password for username: {}", username);
+
+        int updatedRows = entityManager.createQuery(
+                        "UPDATE User u SET u.password = :newPassword WHERE u.username = :username")
+                .setParameter("newPassword", newPassword)
+                .setParameter("username", username)
+                .executeUpdate();
+
+        if (updatedRows == 0) {
+            logger.error("Failed to change password. User with username {} not found", username);
+            throw new IllegalArgumentException("User not found: " + username);
+        }
+
+        logger.info("Password successfully updated for username: {}", username);
     }
 
     private String generateRandomPassword() {
