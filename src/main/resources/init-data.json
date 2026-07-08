@@ -1,7 +1,6 @@
 {
   "trainees": [
     {
-      "id": 1,
       "dateOfBirth": "2005-05-12",
       "address": "Kyiv, Khreshchatyk 1",
       "user": {
@@ -11,7 +10,6 @@
       }
     },
     {
-      "id": 2,
       "dateOfBirth": "2001-11-23",
       "address": "Lviv, Stepana Bandery 12",
       "user": {
@@ -23,57 +21,44 @@
   ],
   "trainers": [
     {
-      "id": 1,
       "user": {
         "firstName": "John",
         "lastName": "Smith",
         "isActive": true
       },
       "specialization": {
-        "id": 1,
         "trainingTypeName": "Yoga"
       }
     },
     {
-      "id": 2,
       "user": {
         "firstName": "Elena",
         "lastName": "Kostova",
         "isActive": true
       },
       "specialization": {
-        "id": 2,
         "trainingTypeName": "Crossfit"
       }
     }
   ],
   "trainings": [
     {
-      "id": 1,
       "trainingName": "Morning Yoga Session",
       "trainingDate": "2026-06-25T09:00:00.000+00:00",
       "trainingDuration": 60,
-      "trainee": { "id": 1 },
-      "trainer": { "id": 1 },
-      "trainingType": { "id": 1, "trainingTypeName": "Yoga" }
+      "trainingType": { "trainingTypeName": "Yoga" }
     },
     {
-      "id": 2,
       "trainingName": "Intense Crossfit WOD",
       "trainingDate": "2026-06-26T18:30:00.000+00:00",
       "trainingDuration": 45,
-      "trainee": { "id": 2 },
-      "trainer": { "id": 2 },
-      "trainingType": { "id": 2, "trainingTypeName": "Crossfit" }
+      "trainingType": { "trainingTypeName": "Crossfit" }
     },
     {
-      "id": 3,
       "trainingName": "Cardio Stamina Training",
       "trainingDate": "2026-06-28T10:00:00.000+00:00",
       "trainingDuration": 50,
-      "trainee": { "id": 1 },
-      "trainer": { "id": 2 },
-      "trainingType": { "id": 2, "trainingTypeName": "Crossfit" }
+      "trainingType": { "trainingTypeName": "Crossfit" }
     }
   ]
 }

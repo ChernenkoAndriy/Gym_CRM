@@ -12,16 +12,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.Optional;
 
 @Service
 @Transactional
 public class TrainingService implements ITrainingService {
-
     private static final Logger logger = LoggerFactory.getLogger(TrainingService.class);
-
     private ITrainingDao trainingDao;
 
     @PersistenceContext
@@ -35,18 +32,17 @@ public class TrainingService implements ITrainingService {
     @Override
     public Training create(Training training) {
         logger.info("Creating new training profile: {}", training.getTrainingName());
-
         Trainee trainee = entityManager.find(Trainee.class, training.getTrainee().getId());
         Trainer trainer = entityManager.find(Trainer.class, training.getTrainer().getId());
-
         if (trainee == null || trainer == null) {
             throw new IllegalArgumentException("Trainee or Trainer explicitly missing associated records in DB");
         }
-
+        if (!trainee.getUser().getIsActive() || !trainer.getUser().getIsActive()) {
+            throw new IllegalArgumentException("Cannot create training with inactive trainee or trainer");
+        }
         if (trainee.getTrainers() == null) {
             trainee.setTrainers(new ArrayList<>());
         }
-
         if (!trainee.getTrainers().contains(trainer)) {
             logger.info("Automatically assigning trainer {} to trainee {} because of a new training session",
                     trainer.getUser().getUsername(), trainee.getUser().getUsername());

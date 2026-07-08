@@ -6,6 +6,7 @@ import com.epam.java.specialization.gym_crm.service.interfaces.ITraineeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
@@ -58,6 +59,7 @@ public class TraineeService extends AbstractUserService implements ITraineeServi
         return traineeDao.findById(id);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Optional<Trainee> getByUsername(String username) {
         logger.debug("Selecting trainee profile with username: {}", username);
@@ -68,14 +70,21 @@ public class TraineeService extends AbstractUserService implements ITraineeServi
         return result.stream().findFirst();
     }
 
+    @Override
     public void deleteByUsername(String username) {
         logger.warn("Attempting hard delete of trainee profile by username: {}", username);
         Trainee trainee = getByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Trainee not found with username: " + username));
+        if (trainee.getTrainers() != null) {
+            trainee.getTrainers().clear();
+        }
+        traineeDao.update(trainee);
+        entityManager.flush();
         traineeDao.delete(trainee.getId());
         logger.info("Successfully deleted trainee and all associated trainings for username: {}", username);
     }
 
+    @Override
     public void toggleActivation(String username, boolean isActive) {
         logger.info("Attempting to toggle activation status to {} for username: {}", isActive, username);
         Trainee trainee = getByUsername(username)
@@ -89,26 +98,19 @@ public class TraineeService extends AbstractUserService implements ITraineeServi
         logger.info("Successfully changed activation status to {} for username: {}", isActive, username);
     }
 
+    @Override
     @Transactional(readOnly = true)
-    public List<Training> getTrainingsByCriteria(String username, Date fromDate, Date toDate, String trainerName, String trainingType) {
+    public List<Training> getTrainingsByCriteria(String username, Date fromDate, Date toDate, String trainerName, String trainingType, int page, int size) {
         logger.debug("Fetching trainee trainings by criteria for username: {}", username);
-
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Training> query = cb.createQuery(Training.class);
         Root<Training> root = query.from(Training.class);
-
-        
-        jakarta.persistence.criteria.Fetch<Training, Trainee> traineeFetch = root.fetch("trainee", jakarta.persistence.criteria.JoinType.INNER);
-        traineeFetch.fetch("user", jakarta.persistence.criteria.JoinType.INNER);
-
-        jakarta.persistence.criteria.Fetch<Training, Trainer> trainerFetch = root.fetch("trainer", jakarta.persistence.criteria.JoinType.INNER);
-        trainerFetch.fetch("user", jakarta.persistence.criteria.JoinType.INNER);
-
+        root.fetch("trainee", jakarta.persistence.criteria.JoinType.INNER).fetch("user", jakarta.persistence.criteria.JoinType.INNER);
+        root.fetch("trainer", jakarta.persistence.criteria.JoinType.INNER).fetch("user", jakarta.persistence.criteria.JoinType.INNER);
         root.fetch("trainingType", jakarta.persistence.criteria.JoinType.INNER);
 
-        
-        Join<Training, Trainee> traineeJoin = (Join<Training, Trainee>) (Join<?, ?>) traineeFetch;
-        Join<Trainee, User> traineeUserJoin = traineeJoin.join("user");
+        Join<Training, Trainee> traineeJoin = root.join("trainee", jakarta.persistence.criteria.JoinType.INNER);
+        Join<Trainee, User> traineeUserJoin = traineeJoin.join("user", jakarta.persistence.criteria.JoinType.INNER);
 
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(cb.equal(traineeUserJoin.get("username"), username));
@@ -120,20 +122,24 @@ public class TraineeService extends AbstractUserService implements ITraineeServi
             predicates.add(cb.lessThanOrEqualTo(root.get("trainingDate"), toDate));
         }
         if (trainerName != null && !trainerName.trim().isEmpty()) {
-            Join<Training, Trainer> trainerJoin = (Join<Training, Trainer>) (Join<?, ?>) trainerFetch;
-            Join<Trainer, User> trainerUserJoin = trainerJoin.join("user");
+            Join<Training, Trainer> trainerJoin = root.join("trainer", jakarta.persistence.criteria.JoinType.INNER);
+            Join<Trainer, User> trainerUserJoin = trainerJoin.join("user", jakarta.persistence.criteria.JoinType.INNER);
             predicates.add(cb.equal(trainerUserJoin.get("username"), trainerName));
         }
         if (trainingType != null && !trainingType.trim().isEmpty()) {
-            Join<Training, TrainingType> typeJoin = root.join("trainingType");
+            Join<Training, TrainingType> typeJoin = root.join("trainingType", jakarta.persistence.criteria.JoinType.INNER);
             predicates.add(cb.equal(typeJoin.get("trainingTypeName"), trainingType));
         }
 
         query.select(root).distinct(true).where(predicates.toArray(new Predicate[0]));
-        return entityManager.createQuery(query).getResultList();
+
+        return entityManager.createQuery(query)
+                .setFirstResult((page - 1) * size)
+                .setMaxResults(size)
+                .getResultList();
     }
 
-    @Transactional
+    @Override
     public void updateTrainersList(String traineeUsername, List<String> trainerUsernames) {
         logger.info("Updating trainers list for trainee: {}", traineeUsername);
         Trainee trainee = getByUsername(traineeUsername)
@@ -141,15 +147,16 @@ public class TraineeService extends AbstractUserService implements ITraineeServi
         if (trainerUsernames == null || trainerUsernames.isEmpty()) {
             trainee.getTrainers().clear();
             traineeDao.update(trainee);
+            entityManager.flush();
             return;
         }
         String jpql = "SELECT t FROM Trainer t WHERE t.user.username IN :usernames";
         List<Trainer> newTrainers = entityManager.createQuery(jpql, Trainer.class)
                 .setParameter("usernames", trainerUsernames)
                 .getResultList();
-
         trainee.setTrainers(new ArrayList<>(newTrainers));
         traineeDao.update(trainee);
+        entityManager.flush();
         logger.info("Successfully updated trainers list for trainee {}. Total trainers assigned: {}",
                 traineeUsername, newTrainers.size());
     }

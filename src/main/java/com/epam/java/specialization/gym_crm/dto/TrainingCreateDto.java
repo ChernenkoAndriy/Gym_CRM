@@ -1,5 +1,7 @@
 package com.epam.java.specialization.gym_crm.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,10 +13,16 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrainingCreateDto {
+    @NotNull(message = "Trainee ID is required")
     private Long traineeId;
+    @NotNull(message = "Trainer ID is required")
     private Long trainerId;
+    @NotBlank(message = "Training name is required")
     private String trainingName;
+    @NotNull(message = "Training type ID is required")
     private Long trainingTypeId;
+    @NotNull(message = "Training date is required")
     private Date trainingDate;
+    @NotNull(message = "Training duration is required")
     private Integer trainingDuration;
 }

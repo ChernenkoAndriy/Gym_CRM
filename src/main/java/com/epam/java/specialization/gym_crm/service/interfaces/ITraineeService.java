@@ -10,7 +10,7 @@ public interface ITraineeService extends ICRService<Trainee, Long>, IUpdateServi
     Optional<Trainee> getByUsername(String username);
     void deleteByUsername(String username);
     void toggleActivation(String username, boolean isActive);
-    List<Training> getTrainingsByCriteria(String username, Date fromDate, Date toDate, String trainerName, String trainingType);
+    List<Training> getTrainingsByCriteria(String username, Date fromDate, Date toDate, String trainerName, String trainingType, int page, int size);
     void updateTrainersList(String traineeUsername, List<String> trainerUsernames);
     boolean authenticate(String username, String password);
     void changePassword(String username, String newPassword);

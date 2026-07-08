@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.List;
 
 public interface ITrainerService extends ICRService<Trainer, Long>, IUpdateService<Trainer> {
-    List<Training> getTrainingsByCriteria(String username, Date fromDate, Date toDate, String traineeName);
+    List<Training> getTrainingsByCriteria(String username, Date fromDate, Date toDate, String traineeName, int page, int size);
     List<Trainer> getAvailableTrainersNotAssignedToTrainee(String traineeUsername);
+    boolean authenticate(String username, String password);
+    void toggleActivation(String username, boolean isActive);
 }
