@@ -15,7 +15,6 @@ import java.util.Optional;
 @Service
 @Transactional
 public class TrainingTypeService implements ITrainingTypeService {
-
     private static final Logger logger = LoggerFactory.getLogger(TrainingTypeService.class);
     private final List<String> ALLOWED_CONSTANTS = Arrays.asList("Yoga", "Crossfit", "Fitness");
     private ITrainingTypeDao trainingTypeDao;
@@ -28,15 +27,14 @@ public class TrainingTypeService implements ITrainingTypeService {
     @Override
     public TrainingType create(TrainingType entity) {
         logger.info("Checking training type: {}", entity.getTrainingTypeName());
-        return trainingTypeDao.findAll().stream()
-                .filter(t -> t.getTrainingTypeName().equals(entity.getTrainingTypeName()))
-                .findFirst()
-                .orElseGet(() -> {
-                    if (ALLOWED_CONSTANTS.contains(entity.getTrainingTypeName())) {
-                        return trainingTypeDao.create(entity);
-                    }
-                    throw new UnsupportedOperationException("Creation of new training types from the application is strictly prohibited.");
-                });
+        Optional<TrainingType> existing = trainingTypeDao.findByName(entity.getTrainingTypeName());
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        if (ALLOWED_CONSTANTS.contains(entity.getTrainingTypeName())) {
+            return trainingTypeDao.create(entity);
+        }
+        throw new UnsupportedOperationException("Creation of new training types from the application is strictly prohibited.");
     }
 
     @Override

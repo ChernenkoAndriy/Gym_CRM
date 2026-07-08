@@ -39,7 +39,7 @@ public class Training extends AbstractEntity<Long> {
     @JoinColumn(name = "training_type_id", nullable = false)
     private TrainingType trainingType;
 
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "training_date", nullable = false)
     private Date trainingDate;
 

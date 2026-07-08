@@ -12,6 +12,7 @@ public interface ITrainerService {
     TrainerResponseDto create(TrainerCreateDto dto);
     TrainerResponseDto update(TrainerUpdateDto dto);
     Optional<TrainerResponseDto> getById(Long id);
+    Optional<TrainerResponseDto> getByUsername(String username);
     List<TrainingResponseDto> getTrainingsByCriteria(String username, Date fromDate, Date toDate, String traineeName, int page, int size);
     List<TrainerResponseDto> getAvailableTrainersNotAssignedToTrainee(String traineeUsername);
     boolean authenticate(String username, String password);

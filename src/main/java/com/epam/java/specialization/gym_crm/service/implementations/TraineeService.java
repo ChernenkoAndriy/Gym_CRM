@@ -23,15 +23,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class TraineeService extends AbstractUserService implements ITraineeService {
-
-    private ITraineeDao traineeDao;
     private ITraineeMapper traineeMapper;
     private ITrainingMapper trainingMapper;
-
-    @Autowired
-    public void setTraineeDao(ITraineeDao traineeDao) {
-        this.traineeDao = traineeDao;
-    }
 
     @Autowired
     public void setTraineeMapper(ITraineeMapper traineeMapper) {
@@ -57,13 +50,14 @@ public class TraineeService extends AbstractUserService implements ITraineeServi
         logger.debug("Updating trainee profile with ID: {}", dto.getId());
         Trainee existing = traineeDao.findById(dto.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Trainee not found with ID: " + dto.getId()));
-        Trainee updatedData = traineeMapper.toEntityFromUpdate(dto);
-
-        existing.getUser().setFirstName(updatedData.getUser().getFirstName());
-        existing.getUser().setLastName(updatedData.getUser().getLastName());
-        existing.getUser().setIsActive(updatedData.getUser().getIsActive());
-        existing.setDateOfBirth(updatedData.getDateOfBirth());
-        existing.setAddress(updatedData.getAddress());
+        if (existing.getUser().getIsActive() != dto.getIsActive()) {
+            toggleActivation(existing.getUser().getUsername(), dto.getIsActive());
+        }
+        Trainee updatedData = traineeMapper.toEntityFromCreate(null);
+        existing.getUser().setFirstName(dto.getFirstName());
+        existing.getUser().setLastName(dto.getLastName());
+        existing.setDateOfBirth(dto.getDateOfBirth());
+        existing.setAddress(dto.getAddress());
 
         Trainee saved = traineeDao.update(existing);
         return traineeMapper.toResponseDto(saved);
@@ -98,7 +92,6 @@ public class TraineeService extends AbstractUserService implements ITraineeServi
             trainee.getTrainers().clear();
         }
         traineeDao.update(trainee);
-        entityManager.flush();
         traineeDao.delete(trainee.getId());
         logger.info("Successfully deleted trainee and all associated trainings for username: {}", username);
     }
@@ -137,16 +130,11 @@ public class TraineeService extends AbstractUserService implements ITraineeServi
         if (trainerUsernames == null || trainerUsernames.isEmpty()) {
             trainee.getTrainers().clear();
             traineeDao.update(trainee);
-            entityManager.flush();
             return;
         }
-        String jpql = "SELECT t FROM Trainer t WHERE t.user.username IN :usernames";
-        List<Trainer> newTrainers = entityManager.createQuery(jpql, Trainer.class)
-                .setParameter("usernames", trainerUsernames)
-                .getResultList();
+        List<Trainer> newTrainers = traineeDao.findTrainersByUsernames(trainerUsernames);
         trainee.setTrainers(new ArrayList<>(newTrainers));
         traineeDao.update(trainee);
-        entityManager.flush();
         logger.info("Successfully updated trainers list for trainee {}. Total trainers assigned: {}",
                 traineeUsername, newTrainers.size());
     }

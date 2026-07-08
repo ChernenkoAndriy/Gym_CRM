@@ -20,7 +20,6 @@ import java.util.Optional;
 
 @Repository
 public class TraineeDao extends AbstractJpaDao<Trainee> implements ITraineeDao {
-
     public TraineeDao() {
         super(Trainee.class);
     }
@@ -39,17 +38,13 @@ public class TraineeDao extends AbstractJpaDao<Trainee> implements ITraineeDao {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Training> query = cb.createQuery(Training.class);
         Root<Training> root = query.from(Training.class);
-
         root.fetch("trainee", JoinType.INNER).fetch("user", JoinType.INNER);
         root.fetch("trainer", JoinType.INNER).fetch("user", JoinType.INNER);
         root.fetch("trainingType", JoinType.INNER);
-
         Join<Training, Trainee> traineeJoin = root.join("trainee", JoinType.INNER);
         Join<Trainee, User> traineeUserJoin = traineeJoin.join("user", JoinType.INNER);
-
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(cb.equal(traineeUserJoin.get("username"), username));
-
         if (fromDate != null) {
             predicates.add(cb.greaterThanOrEqualTo(root.get("trainingDate"), fromDate));
         }
@@ -65,8 +60,14 @@ public class TraineeDao extends AbstractJpaDao<Trainee> implements ITraineeDao {
             Join<Training, TrainingType> typeJoin = root.join("trainingType", JoinType.INNER);
             predicates.add(cb.equal(typeJoin.get("trainingTypeName"), trainingType));
         }
-
         query.select(root).distinct(true).where(predicates.toArray(new Predicate[0]));
         return entityManager.createQuery(query).getResultList();
+    }
+
+    @Override
+    public List<Trainer> findTrainersByUsernames(List<String> usernames) {
+        return entityManager.createQuery("SELECT t FROM Trainer t WHERE t.user.username IN :usernames", Trainer.class)
+                .setParameter("usernames", usernames)
+                .getResultList();
     }
 }

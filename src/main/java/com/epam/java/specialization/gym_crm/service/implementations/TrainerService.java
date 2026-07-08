@@ -1,6 +1,5 @@
 package com.epam.java.specialization.gym_crm.service.implementations;
 
-import com.epam.java.specialization.gym_crm.dao.intefaces.ITraineeDao;
 import com.epam.java.specialization.gym_crm.dao.intefaces.ITrainerDao;
 import com.epam.java.specialization.gym_crm.dao.intefaces.ITrainingTypeDao;
 import com.epam.java.specialization.gym_crm.dto.TrainerCreateDto;
@@ -16,6 +15,7 @@ import com.epam.java.specialization.gym_crm.service.interfaces.ITrainerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -25,15 +25,9 @@ import java.util.stream.Collectors;
 @Transactional
 public class TrainerService extends AbstractUserService implements ITrainerService {
 
-    private ITrainerDao trainerDao;
     private ITrainingTypeDao trainingTypeDao;
     private ITrainerMapper trainerMapper;
     private ITrainingMapper trainingMapper;
-
-    @Autowired
-    public void setTrainerDao(ITrainerDao trainerDao) {
-        this.trainerDao = trainerDao;
-    }
 
     @Autowired
     public void setTrainingTypeDao(ITrainingTypeDao trainingTypeDao) {
@@ -67,15 +61,14 @@ public class TrainerService extends AbstractUserService implements ITrainerServi
         logger.debug("Updating trainer profile with ID: {}", dto.getId());
         Trainer existing = trainerDao.findById(dto.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Trainer not found with ID: " + dto.getId()));
-        Trainer updatedData = trainerMapper.toEntityFromUpdate(dto);
+        if (existing.getUser().getIsActive() != dto.getIsActive()) {
+            toggleActivation(existing.getUser().getUsername(), dto.getIsActive());
+        }
         TrainingType trainingType = trainingTypeDao.findById(dto.getTrainingTypeId())
                 .orElseThrow(() -> new IllegalArgumentException("TrainingType not found with ID: " + dto.getTrainingTypeId()));
-
-        existing.getUser().setFirstName(updatedData.getUser().getFirstName());
-        existing.getUser().setLastName(updatedData.getUser().getLastName());
-        existing.getUser().setIsActive(updatedData.getUser().getIsActive());
+        existing.getUser().setFirstName(dto.getFirstName());
+        existing.getUser().setLastName(dto.getLastName());
         existing.setSpecialization(trainingType);
-
         Trainer saved = trainerDao.update(existing);
         return trainerMapper.toResponseDto(saved, trainingType);
     }
@@ -121,5 +114,13 @@ public class TrainerService extends AbstractUserService implements ITrainerServi
         trainer.getUser().setIsActive(isActive);
         trainerDao.update(trainer);
         logger.info("Successfully changed activation status to {} for trainer username: {}", isActive, username);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<TrainerResponseDto> getByUsername(String username) {
+        logger.debug("Selecting trainer profile with username: {}", username);
+        return trainerDao.findByUsername(username)
+                .map(t -> trainerMapper.toResponseDto(t, t.getSpecialization()));
     }
 }

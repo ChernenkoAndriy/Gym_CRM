@@ -130,4 +130,10 @@ public class GymFacade {
         validateAuth(authUsername, authPassword);
         traineeService.updateTrainersList(traineeUsername, trainerUsernames);
     }
+
+    @Transactional(readOnly = true)
+    public Optional<TrainerResponseDto> getTrainerByUsername(String targetUsername, String authUsername, String authPassword) {
+        validateAuth(authUsername, authPassword);
+        return trainerService.getByUsername(targetUsername);
+    }
 }
