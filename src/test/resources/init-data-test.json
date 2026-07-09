@@ -1,0 +1,64 @@
+{
+  "trainees": [
+    {
+      "dateOfBirth": "2005-05-12",
+      "address": "Kyiv, Khreshchatyk 1",
+      "user": {
+        "firstName": "Alex",
+        "lastName": "Smith",
+        "isActive": true
+      }
+    },
+    {
+      "dateOfBirth": "2001-11-23",
+      "address": "Lviv, Stepana Bandery 12",
+      "user": {
+        "firstName": "John",
+        "lastName": "Doe",
+        "isActive": true
+      }
+    }
+  ],
+  "trainers": [
+    {
+      "user": {
+        "firstName": "John",
+        "lastName": "Smith",
+        "isActive": true
+      },
+      "specialization": {
+        "trainingTypeName": "Yoga"
+      }
+    },
+    {
+      "user": {
+        "firstName": "Elena",
+        "lastName": "Kostova",
+        "isActive": true
+      },
+      "specialization": {
+        "trainingTypeName": "Crossfit"
+      }
+    }
+  ],
+  "trainings": [
+    {
+      "trainingName": "Morning Yoga Session",
+      "trainingDate": "2026-06-25T09:00:00.000+00:00",
+      "trainingDuration": 60,
+      "trainingType": { "trainingTypeName": "Yoga" }
+    },
+    {
+      "trainingName": "Intense Crossfit WOD",
+      "trainingDate": "2026-06-26T18:30:00.000+00:00",
+      "trainingDuration": 45,
+      "trainingType": { "trainingTypeName": "Crossfit" }
+    },
+    {
+      "trainingName": "Cardio Stamina Training",
+      "trainingDate": "2026-06-28T10:00:00.000+00:00",
+      "trainingDuration": 50,
+      "trainingType": { "trainingTypeName": "Crossfit" }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: Gym_CRM_Test
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:gym_crm_test_db;MODE=PostgreSQL;DATABASE_TO_UPPER=FALSE;INIT=CREATE SCHEMA IF NOT EXISTS public
+    username: test_admin
+    password: test_password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+storage:
+  init:
+    file-path: "classpath:init-data-test.json"
