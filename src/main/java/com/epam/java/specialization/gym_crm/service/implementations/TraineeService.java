@@ -53,7 +53,7 @@ public class TraineeService extends AbstractUserService implements ITraineeServi
         if (existing.getUser().getIsActive() != dto.getIsActive()) {
             toggleActivation(existing.getUser().getUsername(), dto.getIsActive());
         }
-        Trainee updatedData = traineeMapper.toEntityFromCreate(null);
+
         existing.getUser().setFirstName(dto.getFirstName());
         existing.getUser().setLastName(dto.getLastName());
         existing.setDateOfBirth(dto.getDateOfBirth());
