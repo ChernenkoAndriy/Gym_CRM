@@ -56,6 +56,9 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:1.19.8")
     testImplementation("org.testcontainers:postgresql:1.21.4")
     testImplementation("org.testcontainers:junit-jupiter:1.21.4")
+
+    annotationProcessor("org.hibernate.orm:hibernate-jpamodelgen:6.5.2.Final")
+    testAnnotationProcessor("org.hibernate.orm:hibernate-jpamodelgen:6.5.2.Final")
 }
 
 tasks.test {

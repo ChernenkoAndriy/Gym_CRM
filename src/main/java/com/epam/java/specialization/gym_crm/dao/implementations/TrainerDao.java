@@ -1,10 +1,7 @@
 package com.epam.java.specialization.gym_crm.dao.implementations;
 
 import com.epam.java.specialization.gym_crm.dao.intefaces.ITrainerDao;
-import com.epam.java.specialization.gym_crm.model.Trainee;
-import com.epam.java.specialization.gym_crm.model.Trainer;
-import com.epam.java.specialization.gym_crm.model.Training;
-import com.epam.java.specialization.gym_crm.model.User;
+import com.epam.java.specialization.gym_crm.model.*;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
@@ -48,26 +45,28 @@ public class TrainerDao extends AbstractJpaDao<Trainer> implements ITrainerDao {
         CriteriaQuery<Training> query = cb.createQuery(Training.class);
         Root<Training> root = query.from(Training.class);
 
-        root.fetch("trainee", JoinType.INNER).fetch("user", JoinType.INNER);
-        root.fetch("trainer", JoinType.INNER).fetch("user", JoinType.INNER);
-        root.fetch("trainingType", JoinType.INNER);
+        
+        root.fetch(Training_.trainee, JoinType.INNER).fetch(Trainee_.user, JoinType.INNER);
+        root.fetch(Training_.trainer, JoinType.INNER).fetch(Trainer_.user, JoinType.INNER);
+        root.fetch(Training_.trainingType, JoinType.INNER);
 
-        Join<Training, Trainer> trainerJoin = root.join("trainer", JoinType.INNER);
-        Join<Trainer, User> trainerUserJoin = trainerJoin.join("user", JoinType.INNER);
+        
+        Join<Training, Trainer> trainerJoin = root.join(Training_.trainer, JoinType.INNER);
+        Join<Trainer, User> trainerUserJoin = trainerJoin.join(Trainer_.user, JoinType.INNER);
 
         List<Predicate> predicates = new ArrayList<>();
-        predicates.add(cb.equal(trainerUserJoin.get("username"), username));
+        predicates.add(cb.equal(trainerUserJoin.get(User_.username), username));
 
         if (fromDate != null) {
-            predicates.add(cb.greaterThanOrEqualTo(root.get("trainingDate"), fromDate));
+            predicates.add(cb.greaterThanOrEqualTo(root.get(Training_.trainingDate), fromDate));
         }
         if (toDate != null) {
-            predicates.add(cb.lessThanOrEqualTo(root.get("trainingDate"), toDate));
+            predicates.add(cb.lessThanOrEqualTo(root.get(Training_.trainingDate), toDate));
         }
         if (traineeName != null && !traineeName.trim().isEmpty()) {
-            Join<Training, Trainee> traineeJoin = root.join("trainee", JoinType.INNER);
-            Join<Trainee, User> traineeUserJoin = traineeJoin.join("user", JoinType.INNER);
-            predicates.add(cb.equal(traineeUserJoin.get("username"), traineeName));
+            Join<Training, Trainee> traineeJoin = root.join(Training_.trainee, JoinType.INNER);
+            Join<Trainee, User> traineeUserJoin = traineeJoin.join(Trainee_.user, JoinType.INNER);
+            predicates.add(cb.equal(traineeUserJoin.get(User_.username), traineeName));
         }
 
         query.select(root).distinct(true).where(predicates.toArray(new Predicate[0]));

@@ -1,6 +1,7 @@
 package com.epam.java.specialization.gym_crm.config;
 
 import jakarta.persistence.EntityManagerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -9,7 +10,6 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import javax.sql.DataSource;
 import java.util.Properties;
@@ -19,24 +19,24 @@ import java.util.Properties;
 public class TestDatabaseConfig {
 
     
-    private static final PostgreSQLContainer<?> postgresContainer =
-            new PostgreSQLContainer<>("postgres:16-alpine")
-                    .withDatabaseName("gym_crm_test_db")
-                    .withUsername("test_admin")
-                    .withPassword("test_password");
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
 
-    static {
-        postgresContainer.start();
-    }
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
 
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("org.postgresql.Driver");
+
         
-        dataSource.setUrl(postgresContainer.getJdbcUrl());
-        dataSource.setUsername(postgresContainer.getUsername());
-        dataSource.setPassword(postgresContainer.getPassword());
+        dataSource.setUrl(dbUrl);
+        dataSource.setUsername(dbUsername);
+        dataSource.setPassword(dbPassword);
         return dataSource;
     }
 
@@ -51,7 +51,6 @@ public class TestDatabaseConfig {
         em.setJpaVendorAdapter(vendorAdapter);
 
         Properties properties = new Properties();
-        
         properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         properties.setProperty("hibernate.format_sql", "true");
         properties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
