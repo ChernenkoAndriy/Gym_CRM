@@ -2,20 +2,14 @@ spring:
   application:
     name: Gym_CRM
   datasource:
-    driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/gym_crm_db
     username: gym_admin
     password: gym_password
+    driver-class-name: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-        use_sql_comments: true
-
-storage:
-  init:
-    file-path: "classpath:init-data.json"

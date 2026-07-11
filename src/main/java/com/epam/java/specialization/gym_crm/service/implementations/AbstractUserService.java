@@ -1,49 +1,45 @@
 package com.epam.java.specialization.gym_crm.service.implementations;
 
-import com.epam.java.specialization.gym_crm.dao.intefaces.ITraineeDao;
-import com.epam.java.specialization.gym_crm.dao.intefaces.ITrainerDao;
 import com.epam.java.specialization.gym_crm.model.Trainee;
 import com.epam.java.specialization.gym_crm.model.Trainer;
 import com.epam.java.specialization.gym_crm.model.User;
+import com.epam.java.specialization.gym_crm.repository.TraineeRepository;
+import com.epam.java.specialization.gym_crm.repository.TrainerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.security.SecureRandom;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class AbstractUserService {
-
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    protected ITraineeDao traineeDao;
-    protected ITrainerDao trainerDao;
+    protected TraineeRepository traineeRepository;
+    protected TrainerRepository trainerRepository;
 
     @Autowired
-    public void setTraineeDao(ITraineeDao traineeDao) {
-        this.traineeDao = traineeDao;
+    public void setTraineeRepository(TraineeRepository traineeRepository) {
+        this.traineeRepository = traineeRepository;
     }
 
     @Autowired
-    public void setTrainerDao(ITrainerDao trainerDao) {
-        this.trainerDao = trainerDao;
+    public void setTrainerRepository(TrainerRepository trainerRepository) {
+        this.trainerRepository = trainerRepository;
     }
 
     @Transactional
     protected synchronized void prepareUserProfile(User user) {
         String baseUsername = user.getFirstName() + "." + user.getLastName();
-        List<Trainee> existing = traineeDao.findAll();
+        List<Trainee> existing = traineeRepository.findAll();
         Set<String> usernamesSet = existing.stream()
                 .map(t -> t.getUser().getUsername())
                 .collect(Collectors.toSet());
-
         String finalUsername = baseUsername;
         if (usernamesSet.contains(baseUsername)) {
             int suffix = 1;
@@ -64,7 +60,7 @@ public abstract class AbstractUserService {
     @Transactional(readOnly = true)
     public boolean authenticate(String username, String password) {
         logger.debug("Attempting authentication for username: {}", username);
-        Optional<Trainee> trainee = traineeDao.findByUsername(username);
+        Optional<Trainee> trainee = traineeRepository.findByUserUsername(username);
         if (trainee.isPresent()) {
             boolean success = trainee.get().getUser().getPassword().equals(password);
             if (success) {
@@ -74,8 +70,7 @@ public abstract class AbstractUserService {
             }
             return success;
         }
-
-        Optional<Trainer> trainer = trainerDao.findByUsername(username);
+        Optional<Trainer> trainer = trainerRepository.findByUserUsername(username);
         if (trainer.isPresent()) {
             boolean success = trainer.get().getUser().getPassword().equals(password);
             if (success) {
@@ -85,7 +80,6 @@ public abstract class AbstractUserService {
             }
             return success;
         }
-
         logger.warn("Authentication failed for username: {}", username);
         return false;
     }
@@ -93,22 +87,20 @@ public abstract class AbstractUserService {
     @Transactional
     public void changePassword(String username, String newPassword) {
         logger.info("Changing password for username: {}", username);
-        Optional<Trainee> trainee = traineeDao.findByUsername(username);
+        Optional<Trainee> trainee = traineeRepository.findByUserUsername(username);
         if (trainee.isPresent()) {
             trainee.get().getUser().setPassword(newPassword);
-            traineeDao.update(trainee.get());
+            traineeRepository.save(trainee.get());
             logger.info("Password successfully updated for username: {}", username);
             return;
         }
-
-        Optional<Trainer> trainer = trainerDao.findByUsername(username);
+        Optional<Trainer> trainer = trainerRepository.findByUserUsername(username);
         if (trainer.isPresent()) {
             trainer.get().getUser().setPassword(newPassword);
-            trainerDao.update(trainer.get());
+            trainerRepository.save(trainer.get());
             logger.info("Password successfully updated for username: {}", username);
             return;
         }
-
         logger.error("Failed to change password. User with username {} not found", username);
         throw new IllegalArgumentException("User not found: " + username);
     }

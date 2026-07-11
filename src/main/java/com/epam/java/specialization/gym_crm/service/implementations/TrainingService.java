@@ -1,9 +1,5 @@
 package com.epam.java.specialization.gym_crm.service.implementations;
 
-import com.epam.java.specialization.gym_crm.dao.intefaces.ITraineeDao;
-import com.epam.java.specialization.gym_crm.dao.intefaces.ITrainerDao;
-import com.epam.java.specialization.gym_crm.dao.intefaces.ITrainingDao;
-import com.epam.java.specialization.gym_crm.dao.intefaces.ITrainingTypeDao;
 import com.epam.java.specialization.gym_crm.dto.TrainingCreateDto;
 import com.epam.java.specialization.gym_crm.dto.TrainingResponseDto;
 import com.epam.java.specialization.gym_crm.mapper.interfaces.ITrainingMapper;
@@ -11,45 +7,49 @@ import com.epam.java.specialization.gym_crm.model.Trainee;
 import com.epam.java.specialization.gym_crm.model.Trainer;
 import com.epam.java.specialization.gym_crm.model.Training;
 import com.epam.java.specialization.gym_crm.model.TrainingType;
+import com.epam.java.specialization.gym_crm.repository.TraineeRepository;
+import com.epam.java.specialization.gym_crm.repository.TrainerRepository;
+import com.epam.java.specialization.gym_crm.repository.TrainingRepository;
+import com.epam.java.specialization.gym_crm.repository.TrainingTypeRepository;
 import com.epam.java.specialization.gym_crm.service.interfaces.ITrainingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.Optional;
 
 @Service
 @Transactional
 public class TrainingService implements ITrainingService {
-
     private static final Logger logger = LoggerFactory.getLogger(TrainingService.class);
 
-    private ITrainingDao trainingDao;
-    private ITraineeDao traineeDao;
-    private ITrainerDao trainerDao;
-    private ITrainingTypeDao trainingTypeDao;
+    private TrainingRepository trainingRepository;
+    private TraineeRepository traineeRepository;
+    private TrainerRepository trainerRepository;
+    private TrainingTypeRepository trainingTypeRepository;
     private ITrainingMapper trainingMapper;
 
     @Autowired
-    public void setTrainingDao(ITrainingDao trainingDao) {
-        this.trainingDao = trainingDao;
+    public void setTrainingRepository(TrainingRepository trainingRepository) {
+        this.trainingRepository = trainingRepository;
     }
 
     @Autowired
-    public void setTraineeDao(ITraineeDao traineeDao) {
-        this.traineeDao = traineeDao;
+    public void setTraineeRepository(TraineeRepository traineeRepository) {
+        this.traineeRepository = traineeRepository;
     }
 
     @Autowired
-    public void setTrainerDao(ITrainerDao trainerDao) {
-        this.trainerDao = trainerDao;
+    public void setTrainerRepository(TrainerRepository trainerRepository) {
+        this.trainerRepository = trainerRepository;
     }
 
     @Autowired
-    public void setTrainingTypeDao(ITrainingTypeDao trainingTypeDao) {
-        this.trainingTypeDao = trainingTypeDao;
+    public void setTrainingTypeRepository(TrainingTypeRepository trainingTypeRepository) {
+        this.trainingTypeRepository = trainingTypeRepository;
     }
 
     @Autowired
@@ -60,11 +60,11 @@ public class TrainingService implements ITrainingService {
     @Override
     public TrainingResponseDto create(TrainingCreateDto dto) {
         logger.info("Creating new training profile: {}", dto.getTrainingName());
-        Trainee trainee = traineeDao.findById(dto.getTraineeId())
+        Trainee trainee = traineeRepository.findById(dto.getTraineeId())
                 .orElseThrow(() -> new IllegalArgumentException("Trainee explicitly missing associated records in DB"));
-        Trainer trainer = trainerDao.findById(dto.getTrainerId())
+        Trainer trainer = trainerRepository.findById(dto.getTrainerId())
                 .orElseThrow(() -> new IllegalArgumentException("Trainer explicitly missing associated records in DB"));
-        TrainingType trainingType = trainingTypeDao.findById(dto.getTrainingTypeId())
+        TrainingType trainingType = trainingTypeRepository.findById(dto.getTrainingTypeId())
                 .orElseThrow(() -> new IllegalArgumentException("TrainingType explicitly missing associated records in DB"));
 
         if (!trainee.getUser().getIsActive() || !trainer.getUser().getIsActive()) {
@@ -74,15 +74,16 @@ public class TrainingService implements ITrainingService {
         if (trainee.getTrainers() == null) {
             trainee.setTrainers(new ArrayList<>());
         }
+
         if (!trainee.getTrainers().contains(trainer)) {
             logger.info("Automatically assigning trainer {} to trainee {} because of a new training session",
                     trainer.getUser().getUsername(), trainee.getUser().getUsername());
             trainee.getTrainers().add(trainer);
-            traineeDao.update(trainee);
+            traineeRepository.save(trainee);
         }
 
         Training training = trainingMapper.toEntityFromCreate(dto, trainee, trainer, trainingType);
-        Training saved = trainingDao.create(training);
+        Training saved = trainingRepository.save(training);
         return trainingMapper.toResponseDto(saved, trainee, trainer, trainingType);
     }
 
@@ -90,6 +91,6 @@ public class TrainingService implements ITrainingService {
     @Transactional(readOnly = true)
     public Optional<TrainingResponseDto> getById(Long id) {
         logger.debug("Selecting training profile with ID: {}", id);
-        return trainingDao.findById(id).map(t -> trainingMapper.toResponseDto(t, t.getTrainee(), t.getTrainer(), t.getTrainingType()));
+        return trainingRepository.findById(id).map(t -> trainingMapper.toResponseDto(t, t.getTrainee(), t.getTrainer(), t.getTrainingType()));
     }
 }
