@@ -3,7 +3,6 @@ databaseChangeLog:
       id: 4-insert-users-and-types
       author: gym_crm_admin
       changes:
-        # Спеціалізації
         - insert:
             tableName: training_types
             columns:
@@ -15,7 +14,6 @@ databaseChangeLog:
               - column: { name: id, value: 2 }
               - column: { name: training_type_name, value: "Crossfit" }
 
-        # Користувачі для Trainees
         - insert:
             tableName: users
             columns:
@@ -35,7 +33,6 @@ databaseChangeLog:
               - column: { name: password, value: "staticPass2" }
               - column: { name: is_active, value: true }
 
-        # Користувачі для Trainers
         - insert:
             tableName: users
             columns:
@@ -59,7 +56,6 @@ databaseChangeLog:
       id: 5-insert-trainees-and-trainers
       author: gym_crm_admin
       changes:
-        # Трейні
         - insert:
             tableName: trainees
             columns:
@@ -75,7 +71,6 @@ databaseChangeLog:
               - column: { name: date_of_birth, value: "2001-11-23" }
               - column: { name: address, value: "Lviv, Stepana Bandery 12" }
 
-        # Тренери
         - insert:
             tableName: trainers
             columns:

@@ -26,10 +26,16 @@ dependencies {
     // Lombok
     compileOnly("org.projectlombok:lombok:1.18.32")
     annotationProcessor("org.projectlombok:lombok:1.18.32")
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
     testCompileOnly("org.projectlombok:lombok:1.18.32")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.32")
-
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.liquibase:liquibase-core")
+
+    implementation("org.mapstruct:mapstruct:1.5.5.Final")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 
     // --- TESTING LAYERS ---
     // Базовий стартер для тестування (включає JUnit 5, Mockito, Spring Test)
@@ -43,6 +49,7 @@ dependencies {
     // JPA Static Metamodel Generator (зберігаємо для безпечних Criteria запитів)
     annotationProcessor("org.hibernate.orm:hibernate-jpamodelgen:6.5.2.Final")
     testAnnotationProcessor("org.hibernate.orm:hibernate-jpamodelgen:6.5.2.Final")
+
 }
 
 tasks.test {

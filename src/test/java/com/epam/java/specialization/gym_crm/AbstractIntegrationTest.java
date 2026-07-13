@@ -1,21 +1,13 @@
 package com.epam.java.specialization.gym_crm;
 
-import com.epam.java.specialization.gym_crm.config.TestConfig;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.PostgreSQLContainer;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = TestConfig.class)
-@TestPropertySource(locations = "classpath:application.test.yaml")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public abstract class AbstractIntegrationTest {
 
     @PersistenceContext
