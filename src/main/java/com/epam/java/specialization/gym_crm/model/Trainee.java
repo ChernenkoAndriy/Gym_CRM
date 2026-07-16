@@ -51,6 +51,7 @@ public class Trainee extends AbstractEntity<Long> {
     )
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Trainer> trainers;
 
     @OneToMany(mappedBy = "trainee", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)

@@ -1,0 +1,328 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1-create-test-tables
+      author: gym_crm_test
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: first_name, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: last_name, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: username, type: varchar(255), constraints: { nullable: false, unique: true } }
+              - column: { name: password, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: is_active, type: boolean, constraints: { nullable: false } }
+        - createTable:
+            tableName: training_types
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: training_type_name, type: varchar(255), constraints: { nullable: false, unique: true } }
+
+  - changeSet:
+      id: 2-create-test-trainees-and-trainers
+      author: gym_crm_test
+      changes:
+        - createTable:
+            tableName: trainees
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: user_id, type: bigint, constraints: { nullable: false, unique: true, foreignKeyName: fk_trainee_user, referencedTableName: users, referencedColumnNames: id } }
+              - column: { name: date_of_birth, type: date }
+              - column: { name: address, type: varchar(255) }
+        - createTable:
+            tableName: trainers
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: user_id, type: bigint, constraints: { nullable: false, unique: true, foreignKeyName: fk_trainer_user, referencedTableName: users, referencedColumnNames: id } }
+              - column: { name: specialization_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_trainer_spec, referencedTableName: training_types, referencedColumnNames: id } }
+
+  - changeSet:
+      id: 3-create-test-trainings-and-relations
+      author: gym_crm_test
+      changes:
+        - createTable:
+            tableName: trainings
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: trainee_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_training_trainee, referencedTableName: trainees, referencedColumnNames: id, deleteCascade: true } } # Фізичний каскад для проходження тестів видалення
+              - column: { name: trainer_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_training_trainer, referencedTableName: trainers, referencedColumnNames: id } }
+              - column: { name: training_name, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: training_type_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_training_type, referencedTableName: training_types, referencedColumnNames: id } }
+              - column: { name: training_date, type: timestamp, constraints: { nullable: false } }
+              - column: { name: training_duration, type: integer, constraints: { nullable: false } }
+        - createTable:
+            tableName: trainee_trainer
+            columns:
+              - column: { name: trainee_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_tt_trainee, referencedTableName: trainees, referencedColumnNames: id } }
+              - column: { name: trainer_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_tt_trainer, referencedTableName: trainers, referencedColumnNames: id } }
+
+  - changeSet:
+      id: 4-insert-users-and-types
+      author: gym_crm_admin
+      changes:
+        - insert:
+            tableName: training_types
+            columns:
+              - column: { name: training_type_name, value: "Yoga" } # ID: 1
+        - insert:
+            tableName: training_types
+            columns:
+              - column: { name: training_type_name, value: "Crossfit" } # ID: 2
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "Alex" }
+              - column: { name: last_name, value: "Smith" }
+              - column: { name: username, value: "Alex.Smith" } # ID: 1
+              - column: { name: password, value: "staticPass1" }
+              - column: { name: is_active, value: true }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "John" }
+              - column: { name: last_name, value: "Doe" }
+              - column: { name: username, value: "John.Doe" } # ID: 2
+              - column: { name: password, value: "staticPass2" }
+              - column: { name: is_active, value: true }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "John" }
+              - column: { name: last_name, value: "Smith" }
+              - column: { name: username, value: "John.Smith" } # ID: 3
+              - column: { name: password, value: "staticPass3" }
+              - column: { name: is_active, value: true }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "Elena" }
+              - column: { name: last_name, value: "Kostova" }
+              - column: { name: username, value: "Elena.Kostova" } # ID: 4
+              - column: { name: password, value: "staticPass4" }
+              - column: { name: is_active, value: true }
+
+  - changeSet:
+      id: 5-insert-trainees-and-trainers
+      author: gym_crm_admin
+      changes:
+        - insert:
+            tableName: trainees
+            columns:
+              - column: { name: user_id, value: 1 } # Trainee ID: 1
+              - column: { name: date_of_birth, value: "2005-05-12" }
+              - column: { name: address, value: "Kyiv, Khreshchatyk 1" }
+        - insert:
+            tableName: trainees
+            columns:
+              - column: { name: user_id, value: 2 } # Trainee ID: 2
+              - column: { name: date_of_birth, value: "2001-11-23" }
+              - column: { name: address, value: "Lviv, Stepana Bandery 12" }
+        - insert:
+            tableName: trainers
+            columns:
+              - column: { name: user_id, value: 3 }
+              - column: { name: specialization_id, value: 1 }
+        - insert:
+            tableName: trainers
+            columns:
+              - column: { name: user_id, value: 4 }
+              - column: { name: specialization_id, value: 2 }
+
+  - changeSet:
+      id: 6-insert-trainings
+      author: gym_crm_admin
+      changes:
+        - insert:
+            tableName: trainings
+            columns:
+              - column: { name: trainee_id, value: 1 }
+              - column: { name: trainer_id, value: 1 }
+              - column: { name: training_name, value: "Morning Yoga Session" }
+              - column: { name: training_type_id, value: 1 }
+              - column: { name: training_date, value: "2026-06-25 09:00:00" }
+              - column: { name: training_duration, value: 60 }
+        - insert:
+            tableName: trainings
+            columns:
+              - column: { name: trainee_id, value: 2 }
+              - column: { name: trainer_id, value: 2 }
+              - column: { name: training_name, value: "Intense Crossfit WOD" }
+              - column: { name: training_type_id, value: 2 }
+              - column: { name: training_date, value: "2026-06-26 18:30:00" }
+              - column: { name: training_duration, value: 45 }
+
+  - changeSet:
+      id: 7-insert-test-training-types
+      author: gym_crm_test
+      changes:
+        - insert:
+            tableName: training_types
+            columns:
+              - column: { name: training_type_name, value: "Zumba" } # ID: 3
+        - insert:
+            tableName: training_types
+            columns:
+              - column: { name: training_type_name, value: "Cardio" } # ID: 4
+        - insert:
+            tableName: training_types
+            columns:
+              - column: { name: training_type_name, value: "Bodybuilding" } # ID: 5
+
+  - changeSet:
+      id: 8-insert-test-users
+      author: gym_crm_test
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "Trainee" }
+              - column: { name: last_name, value: "Ten" }
+              - column: { name: username, value: "Trainee.Ten" } # ID: 5
+              - column: { name: password, value: "password10" }
+              - column: { name: is_active, value: true }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "Trainee" }
+              - column: { name: last_name, value: "Eleven" }
+              - column: { name: username, value: "Trainee.Eleven" } # ID: 6
+              - column: { name: password, value: "password11" }
+              - column: { name: is_active, value: true }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "Trainee" }
+              - column: { name: last_name, value: "Twelve" }
+              - column: { name: username, value: "Trainee.Twelve" } # ID: 7
+              - column: { name: password, value: "password12" }
+              - column: { name: is_active, value: false }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "John" }
+              - column: { name: last_name, value: "Doe" }
+              - column: { name: username, value: "John.Doe3" } # ID: 8
+              - column: { name: password, value: "passDoe3" }
+              - column: { name: is_active, value: true }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "Trainer" }
+              - column: { name: last_name, value: "Ten" }
+              - column: { name: username, value: "Trainer.Ten" } # ID: 9
+              - column: { name: password, value: "password20" }
+              - column: { name: is_active, value: true }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "Trainer" }
+              - column: { name: last_name, value: "Eleven" }
+              - column: { name: username, value: "Trainer.Eleven" } # ID: 10
+              - column: { name: password, value: "password21" }
+              - column: { name: is_active, value: true }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "Trainer" }
+              - column: { name: last_name, value: "Twelve" }
+              - column: { name: username, value: "Trainer.Twelve" } # ID: 11
+              - column: { name: password, value: "password22" }
+              - column: { name: is_active, value: false }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: first_name, value: "Trainer" }
+              - column: { name: last_name, value: "Thirteen" }
+              - column: { name: username, value: "Trainer.Thirteen" } # ID: 12
+              - column: { name: password, value: "password23" }
+              - column: { name: is_active, value: true }
+
+  - changeSet:
+      id: 9-insert-test-trainees-and-trainers
+      author: gym_crm_test
+      changes:
+        - insert:
+            tableName: trainees
+            columns:
+              - column: { name: user_id, value: 5 } # Trainee ID: 3 (для Trainee.Ten)
+              - column: { name: date_of_birth, value: "1995-05-15" }
+              - column: { name: address, value: "Dnipro, Central St 4" }
+        - insert:
+            tableName: trainees
+            columns:
+              - column: { name: user_id, value: 6 } # Trainee ID: 4 (для Trainee.Eleven)
+              - column: { name: date_of_birth, value: "1998-10-20" }
+              - column: { name: address, value: "Odesa, Deribasivska 1" }
+        - insert:
+            tableName: trainees
+            columns:
+              - column: { name: user_id, value: 7 } # Trainee ID: 5 (для Trainee.Twelve)
+              - column: { name: date_of_birth, value: "1990-01-01" }
+              - column: { name: address, value: "Kharkiv, Sumska 10" }
+        - insert:
+            tableName: trainers
+            columns:
+              - column: { name: user_id, value: 9 } # Trainer ID: 3 (для Trainer.Ten)
+              - column: { name: specialization_id, value: 1 }
+        - insert:
+            tableName: trainers
+            columns:
+              - column: { name: user_id, value: 10 } # Trainer ID: 4 (для Trainer.Eleven)
+              - column: { name: specialization_id, value: 2 }
+        - insert:
+            tableName: trainers
+            columns:
+              - column: { name: user_id, value: 11 } # Trainer ID: 5 (для Trainer.Twelve)
+              - column: { name: specialization_id, value: 3 }
+        - insert:
+            tableName: trainers
+            columns:
+              - column: { name: user_id, value: 12 } # Trainer ID: 6 (для Trainer.Thirteen)
+              - column: { name: specialization_id, value: 4 }
+
+  - changeSet:
+      id: 10-insert-test-relations-and-trainings
+      author: gym_crm_test
+      changes:
+        - insert:
+            tableName: trainee_trainer
+            columns:
+              - column: { name: trainee_id, value: 3 } # Trainee.Ten
+              - column: { name: trainer_id, value: 3 } # Trainer.Ten
+        - insert:
+            tableName: trainee_trainer
+            columns:
+              - column: { name: trainee_id, value: 3 } # Trainee.Ten
+              - column: { name: trainer_id, value: 4 } # Trainer.Eleven
+        - insert:
+            tableName: trainee_trainer
+            columns:
+              - column: { name: trainee_id, value: 4 } # Trainee.Eleven
+              - column: { name: trainer_id, value: 4 } # Trainer.Eleven
+        - insert:
+            tableName: trainings
+            columns:
+              - column: { name: trainee_id, value: 3 } # Trainee.Ten
+              - column: { name: trainer_id, value: 3 } # Trainer.Ten
+              - column: { name: training_name, value: "Yoga Flow Intermediate" }
+              - column: { name: training_type_id, value: 1 }
+              - column: { name: training_date, value: "2026-07-01 10:00:00" }
+              - column: { name: training_duration, value: 90 }
+        - insert:
+            tableName: trainings
+            columns:
+              - column: { name: trainee_id, value: 3 } # Trainee.Ten
+              - column: { name: trainer_id, value: 4 } # Trainer.Eleven
+              - column: { name: training_name, value: "Crossfit Speed Run" }
+              - column: { name: training_type_id, value: 2 }
+              - column: { name: training_date, value: "2026-07-05 18:00:00" }
+              - column: { name: training_duration, value: 50 }
+        - insert:
+            tableName: trainings
+            columns:
+              - column: { name: trainee_id, value: 4 } # Trainee.Eleven
+              - column: { name: trainer_id, value: 4 } # Trainer.Eleven
+              - column: { name: training_name, value: "Crossfit Strength Master" }
+              - column: { name: training_type_id, value: 2 }
+              - column: { name: training_date, value: "2026-08-10 11:00:00" }
+              - column: { name: training_duration, value: 45 }

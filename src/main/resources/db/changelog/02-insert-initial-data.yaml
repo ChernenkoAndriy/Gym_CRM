@@ -6,18 +6,14 @@ databaseChangeLog:
         - insert:
             tableName: training_types
             columns:
-              - column: { name: id, value: 1 }
               - column: { name: training_type_name, value: "Yoga" }
         - insert:
             tableName: training_types
             columns:
-              - column: { name: id, value: 2 }
               - column: { name: training_type_name, value: "Crossfit" }
-
         - insert:
             tableName: users
             columns:
-              - column: { name: id, value: 1 }
               - column: { name: first_name, value: "Alex" }
               - column: { name: last_name, value: "Smith" }
               - column: { name: username, value: "Alex.Smith" }
@@ -26,17 +22,14 @@ databaseChangeLog:
         - insert:
             tableName: users
             columns:
-              - column: { name: id, value: 2 }
               - column: { name: first_name, value: "John" }
               - column: { name: last_name, value: "Doe" }
               - column: { name: username, value: "John.Doe" }
               - column: { name: password, value: "staticPass2" }
               - column: { name: is_active, value: true }
-
         - insert:
             tableName: users
             columns:
-              - column: { name: id, value: 3 }
               - column: { name: first_name, value: "John" }
               - column: { name: last_name, value: "Smith" }
               - column: { name: username, value: "John.Smith" }
@@ -45,7 +38,6 @@ databaseChangeLog:
         - insert:
             tableName: users
             columns:
-              - column: { name: id, value: 4 }
               - column: { name: first_name, value: "Elena" }
               - column: { name: last_name, value: "Kostova" }
               - column: { name: username, value: "Elena.Kostova" }
@@ -59,30 +51,25 @@ databaseChangeLog:
         - insert:
             tableName: trainees
             columns:
-              - column: { name: id, value: 1 }
               - column: { name: user_id, value: 1 }
               - column: { name: date_of_birth, value: "2005-05-12" }
               - column: { name: address, value: "Kyiv, Khreshchatyk 1" }
         - insert:
             tableName: trainees
             columns:
-              - column: { name: id, value: 2 }
               - column: { name: user_id, value: 2 }
               - column: { name: date_of_birth, value: "2001-11-23" }
               - column: { name: address, value: "Lviv, Stepana Bandery 12" }
-
         - insert:
             tableName: trainers
             columns:
-              - column: { name: id, value: 1 }
               - column: { name: user_id, value: 3 }
-              - column: { name: specialization_id, value: 1 } # Yoga
+              - column: { name: specialization_id, value: 1 }
         - insert:
             tableName: trainers
             columns:
-              - column: { name: id, value: 2 }
               - column: { name: user_id, value: 4 }
-              - column: { name: specialization_id, value: 2 } # Crossfit
+              - column: { name: specialization_id, value: 2 }
 
   - changeSet:
       id: 6-insert-trainings
@@ -91,7 +78,6 @@ databaseChangeLog:
         - insert:
             tableName: trainings
             columns:
-              - column: { name: id, value: 1 }
               - column: { name: trainee_id, value: 1 }
               - column: { name: trainer_id, value: 1 }
               - column: { name: training_name, value: "Morning Yoga Session" }
@@ -101,7 +87,6 @@ databaseChangeLog:
         - insert:
             tableName: trainings
             columns:
-              - column: { name: id, value: 2 }
               - column: { name: trainee_id, value: 2 }
               - column: { name: trainer_id, value: 2 }
               - column: { name: training_name, value: "Intense Crossfit WOD" }

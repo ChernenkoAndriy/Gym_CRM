@@ -11,45 +11,46 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        mavenBom("org.testcontainers:testcontainers-bom:1.21.4")
+    }
+}
+
 dependencies {
-    // Spring Boot Стартери (замінюють ручну конфігурацію Spring Context, ORM, TX)
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
 
-    // Database Driver
     implementation("org.postgresql:postgresql:42.7.3")
+    implementation("org.liquibase:liquibase-core")
 
-    // Jackson (JSON parsing) — версії тепер контролюються Spring Boot
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
-    // Lombok
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+
+    implementation("org.mapstruct:mapstruct:1.5.5.Final")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+
     compileOnly("org.projectlombok:lombok:1.18.32")
     annotationProcessor("org.projectlombok:lombok:1.18.32")
     annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
     testCompileOnly("org.projectlombok:lombok:1.18.32")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.32")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.liquibase:liquibase-core")
 
-    implementation("org.mapstruct:mapstruct:1.5.5.Final")
-    annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
-
-    // --- TESTING LAYERS ---
-    // Базовий стартер для тестування (включає JUnit 5, Mockito, Spring Test)
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-
-    // Testcontainers
-    testImplementation("org.testcontainers:testcontainers:1.20.0")
-    testImplementation("org.testcontainers:postgresql:1.20.0")
-    testImplementation("org.testcontainers:junit-jupiter:1.20.0")
-
-    // JPA Static Metamodel Generator (зберігаємо для безпечних Criteria запитів)
     annotationProcessor("org.hibernate.orm:hibernate-jpamodelgen:6.5.2.Final")
     testAnnotationProcessor("org.hibernate.orm:hibernate-jpamodelgen:6.5.2.Final")
 
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+
+    testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:junit-jupiter")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.test {
