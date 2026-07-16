@@ -17,6 +17,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void login(String username, String password) {
+        //Метод залишено порожнім, оскільки автентифікація
+        //вже виконується на рівні Security Filter Chain (HTTP Basic Auth).
+        // Поточна реалізація є базовою та буде розширена на наступних етапах розробки.
     }
 
     @Override

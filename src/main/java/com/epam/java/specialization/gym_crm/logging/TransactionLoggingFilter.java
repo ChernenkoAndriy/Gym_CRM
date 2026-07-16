@@ -23,7 +23,7 @@ public class TransactionLoggingFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // 1. Генерація transactionId для транзакційного рівня логування
+        
         String transactionId = request.getHeader("X-Transaction-Id");
         if (transactionId == null || transactionId.trim().isEmpty()) {
             transactionId = UUID.randomUUID().toString();
@@ -32,7 +32,7 @@ public class TransactionLoggingFilter extends OncePerRequestFilter {
         MDC.put(TRANSACTION_ID_KEY, transactionId);
         response.setHeader("X-Transaction-Id", transactionId);
 
-        // 2. Логування деталей вхідного REST-дзвінка
+        
         String method = request.getMethod();
         String uri = request.getRequestURI();
         String queryString = request.getQueryString();
@@ -47,7 +47,7 @@ public class TransactionLoggingFilter extends OncePerRequestFilter {
             long duration = System.currentTimeMillis() - startTime;
             int status = response.getStatus();
 
-            // 3. Логування деталей відповіді сервісу
+            
             if (status >= 400) {
                 log.warn("Finished REST Call: [{}] {} with ERROR status {} (Duration: {}ms)",
                         method, uri, status, duration);

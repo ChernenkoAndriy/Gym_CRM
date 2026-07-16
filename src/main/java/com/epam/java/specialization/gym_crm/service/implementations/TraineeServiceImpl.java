@@ -57,9 +57,9 @@ public class TraineeServiceImpl implements TraineeService {
     public void deleteProfile(String username) {
         Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("Trainee not found with username: " + username));
-//        if (trainee.getTrainers() != null) {
-//            trainee.getTrainers().clear();
-//        }
+
+
+
         traineeRepository.delete(trainee);
     }
 
