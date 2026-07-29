@@ -1,5 +1,7 @@
 package com.epam.java.specialization.gym_crm.config;
 
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,13 +21,17 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+
                         .requestMatchers(HttpMethod.POST, "/trainees").permitAll()
                         .requestMatchers(HttpMethod.POST, "/trainers").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+
+                        .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
+                        .requestMatchers(EndpointRequest.toAnyEndpoint()).authenticated()
+
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());
-
         return http.build();
     }
 
