@@ -80,6 +80,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorDto);
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        ErrorResponseDto errorDto = createBaseErrorResponse(HttpStatus.NOT_FOUND, "Resource not found: " + ex.getResourcePath());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorDto);
+    }
+
     private ErrorResponseDto createBaseErrorResponse(HttpStatus status, String message) {
         return ErrorResponseDto.builder()
                 .timestamp(new Date())

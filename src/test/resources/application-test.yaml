@@ -18,7 +18,14 @@ spring:
     enabled: true
     change-log: classpath:db.changelog/db.changelog-test.yaml
 
-logging:
-  level:
-    root: INFO
-    com.epam.java.specialization.gym_crm: DEBUG
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: "health,info,metrics,prometheus"
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
