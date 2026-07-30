@@ -7,6 +7,7 @@ import com.epam.java.specialization.gym_crm.dto.TrainingTypeResponseDto;
 import com.epam.java.specialization.gym_crm.exception.EntityNotFoundException;
 import com.epam.java.specialization.gym_crm.exception.InactiveUserException;
 import com.epam.java.specialization.gym_crm.mapper.TrainingMapper;
+import com.epam.java.specialization.gym_crm.metrics.CrmMetrics;
 import com.epam.java.specialization.gym_crm.model.Trainee;
 import com.epam.java.specialization.gym_crm.model.Trainer;
 import com.epam.java.specialization.gym_crm.model.Training;
@@ -35,6 +36,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
     private final TrainingMapper trainingMapper;
+    private final CrmMetrics crmMetrics;
 
     @Override
     @Transactional(readOnly = true)
@@ -79,6 +81,7 @@ public class TrainingServiceImpl implements TrainingService {
     @Override
     @Transactional
     public void addTraining(TrainingAddRequestDto request) {
+        crmMetrics.getTrainingCreationTimer().record(() -> {
         Trainee trainee = traineeRepository.findByUserUsername(request.getTraineeUsername())
                 .orElseThrow(() -> new EntityNotFoundException("Trainee not found with username: " + request.getTraineeUsername()));
 
@@ -110,6 +113,7 @@ public class TrainingServiceImpl implements TrainingService {
                 .build();
 
         trainingRepository.save(training);
+        });
     }
 
     @Override

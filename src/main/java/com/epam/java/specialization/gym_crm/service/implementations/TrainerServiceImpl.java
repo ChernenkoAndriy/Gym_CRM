@@ -3,6 +3,7 @@ package com.epam.java.specialization.gym_crm.service.implementations;
 import com.epam.java.specialization.gym_crm.dto.*;
 import com.epam.java.specialization.gym_crm.exception.EntityNotFoundException;
 import com.epam.java.specialization.gym_crm.mapper.TrainerMapper;
+import com.epam.java.specialization.gym_crm.metrics.CrmMetrics;
 import com.epam.java.specialization.gym_crm.model.Trainer;
 import com.epam.java.specialization.gym_crm.model.TrainingType;
 import com.epam.java.specialization.gym_crm.repository.TrainerRepository;
@@ -20,6 +21,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainingTypeRepository trainingTypeRepository;
     private final UserService userService; 
     private final TrainerMapper trainerMapper;
+    private final CrmMetrics crmMetrics;
 
     @Override
     @Transactional
@@ -33,6 +35,7 @@ public class TrainerServiceImpl implements TrainerService {
         userService.prepareUserCredentials(trainer.getUser());
 
         trainerRepository.save(trainer);
+        crmMetrics.incrementTrainerRegistrations();
         return new RegistrationResponseDto(trainer.getUser().getUsername(), trainer.getUser().getPassword());
     }
 
