@@ -1,32 +1,30 @@
 package com.epam.java.specialization.gym_crm.health;
 
-import com.epam.java.specialization.gym_crm.repository.TrainingTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class DatabaseHealthIndicator implements HealthIndicator {
 
-    private final TrainingTypeRepository trainingTypeRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public Health health() {
         try {
-            long count = trainingTypeRepository.count();
-            if (count > 0) {
+            Integer result = jdbcTemplate.queryForObject("SELECT 1", Integer.class);
+
+            if (result != null && result == 1) {
                 return Health.up()
                         .withDetail("database", "PostgreSQL is reachable")
-                        .withDetail("trainingTypesCount", count)
-                        .withDetail("message", "Database contains initial static data")
+                        .withDetail("validationQuery", "SELECT 1")
                         .build();
             } else {
                 return Health.down()
-                        .withDetail("database", "PostgreSQL is reachable")
-                        .withDetail("trainingTypesCount", 0)
-                        .withDetail("warning", "Training types database table is empty")
+                        .withDetail("database", "PostgreSQL returned unexpected response")
                         .build();
             }
         } catch (Exception ex) {

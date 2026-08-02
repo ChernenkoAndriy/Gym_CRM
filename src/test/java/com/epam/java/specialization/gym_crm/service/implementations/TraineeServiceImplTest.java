@@ -3,6 +3,7 @@ package com.epam.java.specialization.gym_crm.service.implementations;
 import com.epam.java.specialization.gym_crm.dto.*;
 import com.epam.java.specialization.gym_crm.exception.EntityNotFoundException;
 import com.epam.java.specialization.gym_crm.mapper.TraineeMapper;
+import com.epam.java.specialization.gym_crm.metrics.CrmMetrics;
 import com.epam.java.specialization.gym_crm.model.Trainee;
 import com.epam.java.specialization.gym_crm.model.Trainer;
 import com.epam.java.specialization.gym_crm.model.User;
@@ -37,6 +38,8 @@ class TraineeServiceImplTest {
     private UserService userService;
     @Mock
     private TraineeMapper traineeMapper;
+    @Mock
+    private CrmMetrics crmMetrics;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;

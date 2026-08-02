@@ -32,7 +32,7 @@ public class ActuatorIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(jsonPath("$.components.database.status").value("UP"))
-                .andExpect(jsonPath("$.components.database.details.trainingTypesCount").exists());
+                .andExpect(jsonPath("$.components.database.details.validationQuery").value("SELECT 1"));
     }
 
     @Test

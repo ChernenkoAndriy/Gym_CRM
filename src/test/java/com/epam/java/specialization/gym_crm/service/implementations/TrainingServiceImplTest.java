@@ -4,8 +4,10 @@ import com.epam.java.specialization.gym_crm.dto.*;
 import com.epam.java.specialization.gym_crm.exception.EntityNotFoundException;
 import com.epam.java.specialization.gym_crm.exception.InactiveUserException;
 import com.epam.java.specialization.gym_crm.mapper.TrainingMapper;
+import com.epam.java.specialization.gym_crm.metrics.CrmMetrics;
 import com.epam.java.specialization.gym_crm.model.*;
 import com.epam.java.specialization.gym_crm.repository.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,13 +15,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
-
 import java.util.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import io.micrometer.core.instrument.Timer;
 
 @ExtendWith(MockitoExtension.class)
 class TrainingServiceImplTest {
@@ -34,9 +35,23 @@ class TrainingServiceImplTest {
     private TrainingTypeRepository trainingTypeRepository;
     @Mock
     private TrainingMapper trainingMapper;
+    @Mock
+    private CrmMetrics crmMetrics;
+    @Mock
+    private Timer timer;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(crmMetrics.getTrainingCreationTimer()).thenReturn(timer);
+        lenient().doAnswer(invocation -> {
+            Runnable runnable = invocation.getArgument(0);
+            runnable.run();
+            return null;
+        }).when(timer).record(any(Runnable.class));
+    }
 
     @Test
     @DisplayName("Should successfully retrieve filtered trainee trainings when trainee exists")
