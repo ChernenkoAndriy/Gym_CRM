@@ -9,6 +9,7 @@ import com.epam.java.specialization.gym_crm.model.TrainingType;
 import com.epam.java.specialization.gym_crm.model.User;
 import com.epam.java.specialization.gym_crm.repository.TrainerRepository;
 import com.epam.java.specialization.gym_crm.repository.TrainingTypeRepository;
+import com.epam.java.specialization.gym_crm.security.JwtService;
 import com.epam.java.specialization.gym_crm.service.interfaces.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.Optional;
 
@@ -29,20 +32,30 @@ class TrainerServiceImplTest {
 
     @Mock
     private TrainerRepository trainerRepository;
+
     @Mock
     private TrainingTypeRepository trainingTypeRepository;
+
     @Mock
     private UserService userService;
+
     @Mock
     private TrainerMapper trainerMapper;
+
     @Mock
     private CrmMetrics crmMetrics;
+
+    @Mock
+    private UserDetailsService userDetailsService;
+
+    @Mock
+    private JwtService jwtService;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
 
     @Test
-    @DisplayName("Should register trainer and map specialized field requirements correctly")
+    @DisplayName("Should register trainer and map specialized field requirements correctly with JWT Token")
     void register_ShouldRegisterTrainerSuccessfully_WhenTrainingTypeExists() {
         TrainerRegisterRequestDto request = TrainerRegisterRequestDto.builder()
                 .firstName("Mike")
@@ -53,18 +66,25 @@ class TrainerServiceImplTest {
         TrainingType trainingType = TrainingType.builder().id(5L).trainingTypeName("Boxing").build();
         User user = User.builder().firstName("Mike").lastName("Tyson").username("Mike.Tyson").password("secret").build();
         Trainer trainer = Trainer.builder().user(user).build();
+        UserDetails mockUserDetails = mock(UserDetails.class);
 
         when(trainingTypeRepository.findById(5L)).thenReturn(Optional.of(trainingType));
         when(trainerMapper.toEntity(request)).thenReturn(trainer);
-        doNothing().when(userService).prepareUserCredentials(user);
+        when(userService.prepareUserCredentials(user)).thenReturn("secret");
         when(trainerRepository.save(trainer)).thenReturn(trainer);
+        when(userDetailsService.loadUserByUsername("Mike.Tyson")).thenReturn(mockUserDetails);
+        when(jwtService.generateToken(mockUserDetails)).thenReturn("mockJwtToken");
 
         RegistrationResponseDto response = trainerService.register(request);
 
         assertThat(response).isNotNull();
         assertThat(response.getUsername()).isEqualTo("Mike.Tyson");
+        assertThat(response.getToken()).isEqualTo("mockJwtToken");
         assertThat(trainer.getSpecialization()).isEqualTo(trainingType);
+
+        verify(userService, times(1)).prepareUserCredentials(user);
         verify(trainerRepository, times(1)).save(trainer);
+        verify(jwtService, times(1)).generateToken(mockUserDetails);
     }
 
     @Test

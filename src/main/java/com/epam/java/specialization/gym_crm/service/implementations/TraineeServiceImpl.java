@@ -8,33 +8,42 @@ import com.epam.java.specialization.gym_crm.model.Trainee;
 import com.epam.java.specialization.gym_crm.model.Trainer;
 import com.epam.java.specialization.gym_crm.repository.TraineeRepository;
 import com.epam.java.specialization.gym_crm.repository.TrainerRepository;
+import com.epam.java.specialization.gym_crm.security.JwtService;
 import com.epam.java.specialization.gym_crm.service.interfaces.TraineeService;
 import com.epam.java.specialization.gym_crm.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TraineeServiceImpl implements TraineeService {
+
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
-    private final UserService userService; 
+    private final UserService userService;
     private final TraineeMapper traineeMapper;
     private final CrmMetrics crmMetrics;
+    private final UserDetailsService userDetailsService;
+    private final JwtService jwtService;
 
     @Override
     @Transactional
     public RegistrationResponseDto register(TraineeRegisterRequestDto request) {
         Trainee trainee = traineeMapper.toEntity(request);
-
-        userService.prepareUserCredentials(trainee.getUser());
-
+        String rawPassword = userService.prepareUserCredentials(trainee.getUser());
         traineeRepository.save(trainee);
-        crmMetrics.incrementTrainerRegistrations();
-        return new RegistrationResponseDto(trainee.getUser().getUsername(), trainee.getUser().getPassword());
+        crmMetrics.incrementTraineeRegistrations();
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(trainee.getUser().getUsername());
+        String token = jwtService.generateToken(userDetails);
+
+        return new RegistrationResponseDto(trainee.getUser().getUsername(), rawPassword, token);
     }
 
     @Override
@@ -60,9 +69,6 @@ public class TraineeServiceImpl implements TraineeService {
     public void deleteProfile(String username) {
         Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("Trainee not found with username: " + username));
-
-
-
         traineeRepository.delete(trainee);
     }
 

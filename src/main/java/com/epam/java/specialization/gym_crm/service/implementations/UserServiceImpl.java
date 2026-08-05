@@ -5,6 +5,7 @@ import com.epam.java.specialization.gym_crm.model.User;
 import com.epam.java.specialization.gym_crm.repository.UserRepository;
 import com.epam.java.specialization.gym_crm.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,19 +16,22 @@ import java.security.SecureRandom;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
     @Override
     @Transactional
-    public void prepareUserCredentials(User user) {
+    public String prepareUserCredentials(User user) {
         String baseUsername = user.getFirstName() + "." + user.getLastName();
         String finalUsername = generateUniqueUsername(baseUsername);
-        String generatedPassword = generateRandomPassword();
+        String rawPassword = generateRandomPassword();
 
         user.setUsername(finalUsername);
-        user.setPassword(generatedPassword);
+        user.setPassword(passwordEncoder.encode(rawPassword));
+
+        return rawPassword;
     }
 
     @Override
@@ -39,7 +43,6 @@ public class UserServiceImpl implements UserService {
         if (user.getIsActive().equals(isActive)) {
             throw new IllegalStateException("User profile active status is already " + isActive);
         }
-
         user.setIsActive(isActive);
         userRepository.save(user);
     }
@@ -48,7 +51,6 @@ public class UserServiceImpl implements UserService {
         String candidate = baseUsername;
         int suffix = 1;
 
-        
         while (userRepository.existsByUsername(candidate)) {
             candidate = baseUsername + suffix;
             suffix++;

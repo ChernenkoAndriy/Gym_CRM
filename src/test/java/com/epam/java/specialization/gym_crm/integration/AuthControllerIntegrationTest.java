@@ -1,19 +1,21 @@
 package com.epam.java.specialization.gym_crm.integration;
 
-import com.epam.java.specialization.gym_crm.AbstractIntegrationTest;
 import com.epam.java.specialization.gym_crm.dto.ChangeLoginRequestDto;
+import com.epam.java.specialization.gym_crm.dto.LoginRequestDto;
+import com.epam.java.specialization.gym_crm.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,89 +30,122 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @BeforeEach
+    void setUp() {
+        userRepository.findByUsername("Trainer.Ten").ifPresent(user -> {
+            user.setPassword(passwordEncoder.encode("staticPass1"));
+            userRepository.save(user);
+        });
+        userRepository.findByUsername("Trainee.Ten").ifPresent(user -> {
+            user.setPassword(passwordEncoder.encode("staticPass1"));
+            userRepository.save(user);
+        });
+    }
+
     @Test
-    @DisplayName("GET /auth/login - Успішний вхід з валідними даними (активний користувач)")
+    @DisplayName("POST /auth/login - Success login with valid credentials (active user)")
     void login_Success() throws Exception {
-        mockMvc.perform(get("/auth/login")
-                        .param("username", "Trainee.Ten")
-                        .param("password", "password10")
-                        .with(httpBasic("Trainee.Ten", "password10")))
-                .andExpect(status().isOk());
+        LoginRequestDto request = LoginRequestDto.builder()
+                .username("Trainee.Ten")
+                .password("staticPass1")
+                .build();
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andExpect(jsonPath("$.type").value("Bearer"));
     }
 
     @Test
-    @DisplayName("GET /auth/login - Помилка: невалідні облікові дані (Bad Credentials)")
+    @DisplayName("POST /auth/login - Fail: invalid credentials (Bad Credentials)")
     void login_Fail_WrongPassword() throws Exception {
-        mockMvc.perform(get("/auth/login")
-                        .param("username", "Trainee.Ten")
-                        .param("password", "wrong_password")
-                        .with(httpBasic("Trainee.Ten", "wrong_password")))
+        LoginRequestDto request = LoginRequestDto.builder()
+                .username("Trainee.Ten")
+                .password("wrong_password")
+                .build();
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("GET /auth/login - Помилка: користувач заблокований / неактивний")
+    @DisplayName("POST /auth/login - Fail: user is blocked or inactive")
     void login_Fail_InactiveUser() throws Exception {
-        
-        mockMvc.perform(get("/auth/login")
-                        .param("username", "Trainee.Twelve")
-                        .param("password", "password12")
-                        .with(httpBasic("Trainee.Twelve", "password12")))
+        LoginRequestDto request = LoginRequestDto.builder()
+                .username("Trainee.Twelve")
+                .password("staticPass1")
+                .build();
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("GET /auth/login - Помилка: користувача не існує")
+    @DisplayName("POST /auth/login - Fail: user does not exist")
     void login_Fail_UserNotFound() throws Exception {
-        mockMvc.perform(get("/auth/login")
-                        .param("username", "Non.Existent")
-                        .param("password", "anyPass")
-                        .with(httpBasic("Non.Existent", "anyPass")))
+        LoginRequestDto request = LoginRequestDto.builder()
+                .username("Non.Existent")
+                .password("staticPass1")
+                .build();
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
     }
 
-    
-    
-    
-
     @Test
-    @DisplayName("PUT /auth/password - Успішна зміна паролю")
+    @WithMockUser(username = "Trainer.Ten", roles = "TRAINER")
+    @DisplayName("PUT /auth/password - Success password change")
     void changeLogin_Success() throws Exception {
-        
         ChangeLoginRequestDto request = ChangeLoginRequestDto.builder()
                 .username("Trainer.Ten")
-                .oldPassword("password20")
+                .oldPassword("staticPass1")
                 .newPassword("newPassword20")
                 .build();
 
         mockMvc.perform(put("/auth/password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(httpBasic("Trainer.Ten", "password20")))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        
-        mockMvc.perform(get("/auth/login")
-                        .param("username", "Trainer.Ten")
-                        .param("password", "newPassword20")
-                        .with(httpBasic("Trainer.Ten", "newPassword20")))
+        LoginRequestDto loginRequest = LoginRequestDto.builder()
+                .username("Trainer.Ten")
+                .password("newPassword20")
+                .build();
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk());
 
-        
         ChangeLoginRequestDto revertRequest = ChangeLoginRequestDto.builder()
                 .username("Trainer.Ten")
                 .oldPassword("newPassword20")
-                .newPassword("password20")
+                .newPassword("staticPass1")
                 .build();
+
         mockMvc.perform(put("/auth/password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(revertRequest))
-                        .with(httpBasic("Trainer.Ten", "newPassword20")))
+                        .content(objectMapper.writeValueAsString(revertRequest)))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("PUT /auth/password - Помилка: старий пароль неправильний")
+    @WithMockUser(username = "Trainee.Eleven", roles = "TRAINEE")
+    @DisplayName("PUT /auth/password - Fail: old password is incorrect")
     void changeLogin_Fail_WrongOldPassword() throws Exception {
         ChangeLoginRequestDto request = ChangeLoginRequestDto.builder()
                 .username("Trainee.Eleven")
@@ -118,34 +153,33 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
                 .newPassword("brandNewPass")
                 .build();
 
-        
         mockMvc.perform(put("/auth/password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(httpBasic("Trainee.Eleven", "password11")))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Invalid old password for user: Trainee.Eleven"));
     }
 
     @Test
-    @DisplayName("PUT /auth/password - Помилка: спроба змінити пароль несумісного користувача (EntityNotFoundException)")
+    @WithMockUser(username = "Trainee.Ten", roles = "TRAINEE")
+    @DisplayName("PUT /auth/password - Fail: attempt to change password for non-existent user (EntityNotFoundException)")
     void changeLogin_Fail_UserNotFound() throws Exception {
         ChangeLoginRequestDto request = ChangeLoginRequestDto.builder()
                 .username("Ghost.User")
-                .oldPassword("password10")
+                .oldPassword("staticPass1")
                 .newPassword("newPassword10")
                 .build();
 
         mockMvc.perform(put("/auth/password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(httpBasic("Trainee.Ten", "password10")))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("User not found with username: Ghost.User"));
     }
 
     @Test
-    @DisplayName("PUT /auth/password - Помилка: валідація DTO (пустий запит)")
+    @WithMockUser(username = "Trainee.Ten", roles = "TRAINEE")
+    @DisplayName("PUT /auth/password - Fail: DTO validation failed (empty payload)")
     void changeLogin_Fail_ValidationFailed() throws Exception {
         ChangeLoginRequestDto invalidRequest = ChangeLoginRequestDto.builder()
                 .username("")
@@ -155,8 +189,7 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
 
         mockMvc.perform(put("/auth/password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest))
-                        .with(httpBasic("Trainee.Ten", "password10")))
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Validation Failed"));
     }

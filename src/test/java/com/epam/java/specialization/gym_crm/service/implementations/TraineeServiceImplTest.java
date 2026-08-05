@@ -9,6 +9,7 @@ import com.epam.java.specialization.gym_crm.model.Trainer;
 import com.epam.java.specialization.gym_crm.model.User;
 import com.epam.java.specialization.gym_crm.repository.TraineeRepository;
 import com.epam.java.specialization.gym_crm.repository.TrainerRepository;
+import com.epam.java.specialization.gym_crm.security.JwtService;
 import com.epam.java.specialization.gym_crm.service.interfaces.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,20 +35,30 @@ class TraineeServiceImplTest {
 
     @Mock
     private TraineeRepository traineeRepository;
+
     @Mock
     private TrainerRepository trainerRepository;
+
     @Mock
     private UserService userService;
+
     @Mock
     private TraineeMapper traineeMapper;
+
     @Mock
     private CrmMetrics crmMetrics;
+
+    @Mock
+    private UserDetailsService userDetailsService;
+
+    @Mock
+    private JwtService jwtService;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
 
     @Test
-    @DisplayName("Should register new trainee, prepare credentials and return registration details")
+    @DisplayName("Should register new trainee, prepare credentials and return registration details with JWT token")
     void register_ShouldSaveTraineeAndReturnCredentials() {
         TraineeRegisterRequestDto request = TraineeRegisterRequestDto.builder()
                 .firstName("John")
@@ -54,17 +67,24 @@ class TraineeServiceImplTest {
 
         User user = User.builder().firstName("John").lastName("Doe").username("John.Doe").password("generatedPass").build();
         Trainee trainee = Trainee.builder().user(user).build();
+        UserDetails mockUserDetails = mock(UserDetails.class);
 
         when(traineeMapper.toEntity(request)).thenReturn(trainee);
-        doNothing().when(userService).prepareUserCredentials(user);
+        when(userService.prepareUserCredentials(user)).thenReturn("generatedPass");
         when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
+        when(userDetailsService.loadUserByUsername("John.Doe")).thenReturn(mockUserDetails);
+        when(jwtService.generateToken(mockUserDetails)).thenReturn("mockJwtToken");
 
         RegistrationResponseDto response = traineeService.register(request);
 
         assertThat(response).isNotNull();
         assertThat(response.getUsername()).isEqualTo("John.Doe");
         assertThat(response.getPassword()).isEqualTo("generatedPass");
+        assertThat(response.getToken()).isEqualTo("mockJwtToken");
+
+        verify(userService, times(1)).prepareUserCredentials(user);
         verify(traineeRepository, times(1)).save(trainee);
+        verify(jwtService, times(1)).generateToken(mockUserDetails);
     }
 
     @Test
@@ -128,7 +148,6 @@ class TraineeServiceImplTest {
         String username = "John.Doe";
         List<Trainer> trainersList = new ArrayList<>();
         trainersList.add(Trainer.builder().build());
-
         Trainee trainee = Trainee.builder()
                 .user(User.builder().username(username).build())
                 .trainers(trainersList)
@@ -139,7 +158,6 @@ class TraineeServiceImplTest {
 
         traineeService.deleteProfile(username);
 
-       // assertThat(trainee.getTrainers()).isEmpty();
         verify(traineeRepository, times(1)).delete(trainee);
     }
 
@@ -174,7 +192,6 @@ class TraineeServiceImplTest {
 
         Trainer trainer = Trainer.builder().user(User.builder().username("Trainer.Max").build()).build();
         List<Trainer> mockTrainers = Collections.singletonList(trainer);
-
         TrainerShortResponseDto responseDto = TrainerShortResponseDto.builder().username("Trainer.Max").build();
 
         when(traineeRepository.findByUserUsername(username)).thenReturn(Optional.of(trainee));

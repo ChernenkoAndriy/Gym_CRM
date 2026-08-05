@@ -1,6 +1,17 @@
 spring:
   application:
     name: Gym_CRM
+    security:
+      jwt:
+        secret-key: ${JWT_SECRET_KEY}
+        expiration: 86400000 # 24 hours
+      brute-force:
+        max-attempts: 3
+        lock-duration-minutes: 5
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   liquibase:

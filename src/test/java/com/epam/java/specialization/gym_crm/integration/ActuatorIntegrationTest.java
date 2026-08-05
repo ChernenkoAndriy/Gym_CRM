@@ -1,15 +1,13 @@
 package com.epam.java.specialization.gym_crm.integration;
 
-import com.epam.java.specialization.gym_crm.AbstractIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,17 +34,17 @@ public class ActuatorIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /actuator/prometheus - Should return 401 Unauthorized for unauthenticated requests")
+    @DisplayName("GET /actuator/prometheus - Should return 403 Unauthorized for unauthenticated requests")
     void prometheusEndpoint_ShouldBeProtected() throws Exception {
         mockMvc.perform(get("/actuator/prometheus"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test
+    @WithMockUser(username = "Trainee.Ten")
     @DisplayName("GET /actuator/prometheus - Should return 200 OK for authenticated user")
     void prometheusEndpoint_ShouldAllowAuthenticatedUser() throws Exception {
-        mockMvc.perform(get("/actuator/prometheus")
-                        .with(httpBasic("Trainee.Ten", "password10")))
+        mockMvc.perform(get("/actuator/prometheus"))
                 .andExpect(status().isOk());
     }
 }

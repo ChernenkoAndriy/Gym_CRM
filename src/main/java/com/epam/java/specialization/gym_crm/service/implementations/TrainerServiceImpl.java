@@ -8,35 +8,42 @@ import com.epam.java.specialization.gym_crm.model.Trainer;
 import com.epam.java.specialization.gym_crm.model.TrainingType;
 import com.epam.java.specialization.gym_crm.repository.TrainerRepository;
 import com.epam.java.specialization.gym_crm.repository.TrainingTypeRepository;
+import com.epam.java.specialization.gym_crm.security.JwtService;
 import com.epam.java.specialization.gym_crm.service.interfaces.TrainerService;
 import com.epam.java.specialization.gym_crm.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class TrainerServiceImpl implements TrainerService {
+
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
-    private final UserService userService; 
+    private final UserService userService;
     private final TrainerMapper trainerMapper;
     private final CrmMetrics crmMetrics;
+    private final UserDetailsService userDetailsService;
+    private final JwtService jwtService;
 
     @Override
     @Transactional
     public RegistrationResponseDto register(TrainerRegisterRequestDto request) {
         TrainingType specialization = trainingTypeRepository.findById(request.getSpecializationId())
                 .orElseThrow(() -> new EntityNotFoundException("TrainingType not found with ID: " + request.getSpecializationId()));
-
         Trainer trainer = trainerMapper.toEntity(request);
         trainer.setSpecialization(specialization);
-
-        userService.prepareUserCredentials(trainer.getUser());
-
+        String rawPassword = userService.prepareUserCredentials(trainer.getUser());
         trainerRepository.save(trainer);
         crmMetrics.incrementTrainerRegistrations();
-        return new RegistrationResponseDto(trainer.getUser().getUsername(), trainer.getUser().getPassword());
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(trainer.getUser().getUsername());
+        String token = jwtService.generateToken(userDetails);
+
+        return new RegistrationResponseDto(trainer.getUser().getUsername(), rawPassword, token);
     }
 
     @Override

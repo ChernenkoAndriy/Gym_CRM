@@ -9,12 +9,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -22,6 +23,9 @@ class UserServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -35,12 +39,16 @@ class UserServiceImplTest {
                 .build();
 
         when(userRepository.existsByUsername("John.Doe")).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenAnswer(invocation -> "encoded_" + invocation.getArgument(0));
 
-        userService.prepareUserCredentials(user);
+        String rawPassword = userService.prepareUserCredentials(user);
 
         assertThat(user.getUsername()).isEqualTo("John.Doe");
-        assertThat(user.getPassword()).isNotBlank().hasSize(10);
+        assertThat(rawPassword).isNotBlank().hasSize(10);
+        assertThat(user.getPassword()).isEqualTo("encoded_" + rawPassword);
+
         verify(userRepository, times(1)).existsByUsername("John.Doe");
+        verify(passwordEncoder, times(1)).encode(rawPassword);
     }
 
     @Test
@@ -54,14 +62,18 @@ class UserServiceImplTest {
         when(userRepository.existsByUsername("John.Doe")).thenReturn(true);
         when(userRepository.existsByUsername("John.Doe1")).thenReturn(true);
         when(userRepository.existsByUsername("John.Doe2")).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenAnswer(invocation -> "encoded_" + invocation.getArgument(0));
 
-        userService.prepareUserCredentials(user);
+        String rawPassword = userService.prepareUserCredentials(user);
 
         assertThat(user.getUsername()).isEqualTo("John.Doe2");
-        assertThat(user.getPassword()).isNotBlank().hasSize(10);
+        assertThat(rawPassword).isNotBlank().hasSize(10);
+        assertThat(user.getPassword()).isEqualTo("encoded_" + rawPassword);
+
         verify(userRepository, times(1)).existsByUsername("John.Doe");
         verify(userRepository, times(1)).existsByUsername("John.Doe1");
         verify(userRepository, times(1)).existsByUsername("John.Doe2");
+        verify(passwordEncoder, times(1)).encode(rawPassword);
     }
 
     @Test

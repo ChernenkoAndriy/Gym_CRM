@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -25,6 +26,9 @@ class AuthServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private AuthServiceImpl authService;
 
@@ -33,7 +37,7 @@ class AuthServiceImplTest {
     void changeLogin_ShouldUpdatePassword_WhenCredentialsAreValid() {
         User user = User.builder()
                 .username("John.Doe")
-                .password("oldSecretPassword")
+                .password("encodedOldPassword")
                 .isActive(true)
                 .build();
 
@@ -44,12 +48,16 @@ class AuthServiceImplTest {
                 .build();
 
         when(userRepository.findByUsername("John.Doe")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("oldSecretPassword", "encodedOldPassword")).thenReturn(true);
+        when(passwordEncoder.encode("newSuperSecretPassword")).thenReturn("encodedNewPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
 
         authService.changeLogin(request);
 
-        assertThat(user.getPassword()).isEqualTo("newSuperSecretPassword");
+        assertThat(user.getPassword()).isEqualTo("encodedNewPassword");
         verify(userRepository, times(1)).findByUsername("John.Doe");
+        verify(passwordEncoder, times(1)).matches("oldSecretPassword", "encodedOldPassword");
+        verify(passwordEncoder, times(1)).encode("newSuperSecretPassword");
         verify(userRepository, times(1)).save(user);
     }
 
@@ -76,7 +84,7 @@ class AuthServiceImplTest {
     void changeLogin_ShouldThrowBadCredentialsException_WhenOldPasswordIsIncorrect() {
         User user = User.builder()
                 .username("John.Doe")
-                .password("actualSecretPassword")
+                .password("encodedActualPassword")
                 .build();
 
         ChangeLoginRequestDto request = ChangeLoginRequestDto.builder()
@@ -86,6 +94,7 @@ class AuthServiceImplTest {
                 .build();
 
         when(userRepository.findByUsername("John.Doe")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongOldPassword", "encodedActualPassword")).thenReturn(false);
 
         assertThatThrownBy(() -> authService.changeLogin(request))
                 .isInstanceOf(BadCredentialsException.class)

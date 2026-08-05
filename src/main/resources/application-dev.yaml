@@ -1,9 +1,19 @@
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      expiration: 86400000
+
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/gym_crm_db}
     username: ${SPRING_DATASOURCE_USERNAME:gym_admin}
     password: ${SPRING_DATASOURCE_PASSWORD:gym_password}
     driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
   jpa:
     hibernate:
       ddl-auto: validate

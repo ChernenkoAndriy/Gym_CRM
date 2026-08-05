@@ -44,7 +44,7 @@ databaseChangeLog:
             tableName: trainings
             columns:
               - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true, nullable: false } }
-              - column: { name: trainee_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_training_trainee, referencedTableName: trainees, referencedColumnNames: id, deleteCascade: true } } # Фізичний каскад для проходження тестів видалення
+              - column: { name: trainee_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_training_trainee, referencedTableName: trainees, referencedColumnNames: id, deleteCascade: true } }
               - column: { name: trainer_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_training_trainer, referencedTableName: trainers, referencedColumnNames: id } }
               - column: { name: training_name, type: varchar(255), constraints: { nullable: false } }
               - column: { name: training_type_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_training_type, referencedTableName: training_types, referencedColumnNames: id } }
@@ -63,42 +63,44 @@ databaseChangeLog:
         - insert:
             tableName: training_types
             columns:
-              - column: { name: training_type_name, value: "Yoga" } # ID: 1
+              - column: { name: id, value: 1 }
+              - column: { name: training_type_name, value: "Yoga" }
         - insert:
             tableName: training_types
             columns:
-              - column: { name: training_type_name, value: "Crossfit" } # ID: 2
+              - column: { name: id, value: 2 }
+              - column: { name: training_type_name, value: "Crossfit" }
         - insert:
             tableName: users
             columns:
               - column: { name: first_name, value: "Alex" }
               - column: { name: last_name, value: "Smith" }
-              - column: { name: username, value: "Alex.Smith" } # ID: 1
-              - column: { name: password, value: "staticPass1" }
+              - column: { name: username, value: "Alex.Smith" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: true }
         - insert:
             tableName: users
             columns:
               - column: { name: first_name, value: "John" }
               - column: { name: last_name, value: "Doe" }
-              - column: { name: username, value: "John.Doe" } # ID: 2
-              - column: { name: password, value: "staticPass2" }
+              - column: { name: username, value: "John.Doe" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: true }
         - insert:
             tableName: users
             columns:
               - column: { name: first_name, value: "John" }
               - column: { name: last_name, value: "Smith" }
-              - column: { name: username, value: "John.Smith" } # ID: 3
-              - column: { name: password, value: "staticPass3" }
+              - column: { name: username, value: "John.Smith" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: true }
         - insert:
             tableName: users
             columns:
               - column: { name: first_name, value: "Elena" }
               - column: { name: last_name, value: "Kostova" }
-              - column: { name: username, value: "Elena.Kostova" } # ID: 4
-              - column: { name: password, value: "staticPass4" }
+              - column: { name: username, value: "Elena.Kostova" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: true }
 
   - changeSet:
@@ -108,13 +110,13 @@ databaseChangeLog:
         - insert:
             tableName: trainees
             columns:
-              - column: { name: user_id, value: 1 } # Trainee ID: 1
+              - column: { name: user_id, value: 1 }
               - column: { name: date_of_birth, value: "2005-05-12" }
               - column: { name: address, value: "Kyiv, Khreshchatyk 1" }
         - insert:
             tableName: trainees
             columns:
-              - column: { name: user_id, value: 2 } # Trainee ID: 2
+              - column: { name: user_id, value: 2 }
               - column: { name: date_of_birth, value: "2001-11-23" }
               - column: { name: address, value: "Lviv, Stepana Bandery 12" }
         - insert:
@@ -158,15 +160,18 @@ databaseChangeLog:
         - insert:
             tableName: training_types
             columns:
-              - column: { name: training_type_name, value: "Zumba" } # ID: 3
+              - column: { name: id, value: 3 }
+              - column: { name: training_type_name, value: "Zumba" }
         - insert:
             tableName: training_types
             columns:
-              - column: { name: training_type_name, value: "Cardio" } # ID: 4
+              - column: { name: id, value: 4 }
+              - column: { name: training_type_name, value: "Cardio" }
         - insert:
             tableName: training_types
             columns:
-              - column: { name: training_type_name, value: "Bodybuilding" } # ID: 5
+              - column: { name: id, value: 5 }
+              - column: { name: training_type_name, value: "Bodybuilding" }
 
   - changeSet:
       id: 8-insert-test-users
@@ -177,64 +182,64 @@ databaseChangeLog:
             columns:
               - column: { name: first_name, value: "Trainee" }
               - column: { name: last_name, value: "Ten" }
-              - column: { name: username, value: "Trainee.Ten" } # ID: 5
-              - column: { name: password, value: "password10" }
+              - column: { name: username, value: "Trainee.Ten" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: true }
         - insert:
             tableName: users
             columns:
               - column: { name: first_name, value: "Trainee" }
               - column: { name: last_name, value: "Eleven" }
-              - column: { name: username, value: "Trainee.Eleven" } # ID: 6
-              - column: { name: password, value: "password11" }
+              - column: { name: username, value: "Trainee.Eleven" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: true }
         - insert:
             tableName: users
             columns:
               - column: { name: first_name, value: "Trainee" }
               - column: { name: last_name, value: "Twelve" }
-              - column: { name: username, value: "Trainee.Twelve" } # ID: 7
-              - column: { name: password, value: "password12" }
+              - column: { name: username, value: "Trainee.Twelve" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: false }
         - insert:
             tableName: users
             columns:
               - column: { name: first_name, value: "John" }
               - column: { name: last_name, value: "Doe" }
-              - column: { name: username, value: "John.Doe3" } # ID: 8
-              - column: { name: password, value: "passDoe3" }
+              - column: { name: username, value: "John.Doe3" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: true }
         - insert:
             tableName: users
             columns:
               - column: { name: first_name, value: "Trainer" }
               - column: { name: last_name, value: "Ten" }
-              - column: { name: username, value: "Trainer.Ten" } # ID: 9
-              - column: { name: password, value: "password20" }
+              - column: { name: username, value: "Trainer.Ten" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: true }
         - insert:
             tableName: users
             columns:
               - column: { name: first_name, value: "Trainer" }
               - column: { name: last_name, value: "Eleven" }
-              - column: { name: username, value: "Trainer.Eleven" } # ID: 10
-              - column: { name: password, value: "password21" }
+              - column: { name: username, value: "Trainer.Eleven" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: true }
         - insert:
             tableName: users
             columns:
               - column: { name: first_name, value: "Trainer" }
               - column: { name: last_name, value: "Twelve" }
-              - column: { name: username, value: "Trainer.Twelve" } # ID: 11
-              - column: { name: password, value: "password22" }
+              - column: { name: username, value: "Trainer.Twelve" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: false }
         - insert:
             tableName: users
             columns:
               - column: { name: first_name, value: "Trainer" }
               - column: { name: last_name, value: "Thirteen" }
-              - column: { name: username, value: "Trainer.Thirteen" } # ID: 12
-              - column: { name: password, value: "password23" }
+              - column: { name: username, value: "Trainer.Thirteen" }
+              - column: { name: password, value: "$2a$10$8.UnVuG9HHgffUDAlk8qfOUVGkqRzgVymGe07xd00DMxs.AQubh4a" }
               - column: { name: is_active, value: true }
 
   - changeSet:
@@ -244,40 +249,40 @@ databaseChangeLog:
         - insert:
             tableName: trainees
             columns:
-              - column: { name: user_id, value: 5 } # Trainee ID: 3 (для Trainee.Ten)
+              - column: { name: user_id, value: 5 }
               - column: { name: date_of_birth, value: "1995-05-15" }
               - column: { name: address, value: "Dnipro, Central St 4" }
         - insert:
             tableName: trainees
             columns:
-              - column: { name: user_id, value: 6 } # Trainee ID: 4 (для Trainee.Eleven)
+              - column: { name: user_id, value: 6 }
               - column: { name: date_of_birth, value: "1998-10-20" }
               - column: { name: address, value: "Odesa, Deribasivska 1" }
         - insert:
             tableName: trainees
             columns:
-              - column: { name: user_id, value: 7 } # Trainee ID: 5 (для Trainee.Twelve)
+              - column: { name: user_id, value: 7 }
               - column: { name: date_of_birth, value: "1990-01-01" }
               - column: { name: address, value: "Kharkiv, Sumska 10" }
         - insert:
             tableName: trainers
             columns:
-              - column: { name: user_id, value: 9 } # Trainer ID: 3 (для Trainer.Ten)
+              - column: { name: user_id, value: 9 }
               - column: { name: specialization_id, value: 1 }
         - insert:
             tableName: trainers
             columns:
-              - column: { name: user_id, value: 10 } # Trainer ID: 4 (для Trainer.Eleven)
+              - column: { name: user_id, value: 10 }
               - column: { name: specialization_id, value: 2 }
         - insert:
             tableName: trainers
             columns:
-              - column: { name: user_id, value: 11 } # Trainer ID: 5 (для Trainer.Twelve)
+              - column: { name: user_id, value: 11 }
               - column: { name: specialization_id, value: 3 }
         - insert:
             tableName: trainers
             columns:
-              - column: { name: user_id, value: 12 } # Trainer ID: 6 (для Trainer.Thirteen)
+              - column: { name: user_id, value: 12 }
               - column: { name: specialization_id, value: 4 }
 
   - changeSet:
@@ -287,23 +292,23 @@ databaseChangeLog:
         - insert:
             tableName: trainee_trainer
             columns:
-              - column: { name: trainee_id, value: 3 } # Trainee.Ten
-              - column: { name: trainer_id, value: 3 } # Trainer.Ten
+              - column: { name: trainee_id, value: 3 }
+              - column: { name: trainer_id, value: 3 }
         - insert:
             tableName: trainee_trainer
             columns:
-              - column: { name: trainee_id, value: 3 } # Trainee.Ten
-              - column: { name: trainer_id, value: 4 } # Trainer.Eleven
+              - column: { name: trainee_id, value: 3 }
+              - column: { name: trainer_id, value: 4 }
         - insert:
             tableName: trainee_trainer
             columns:
-              - column: { name: trainee_id, value: 4 } # Trainee.Eleven
-              - column: { name: trainer_id, value: 4 } # Trainer.Eleven
+              - column: { name: trainee_id, value: 4 }
+              - column: { name: trainer_id, value: 4 }
         - insert:
             tableName: trainings
             columns:
-              - column: { name: trainee_id, value: 3 } # Trainee.Ten
-              - column: { name: trainer_id, value: 3 } # Trainer.Ten
+              - column: { name: trainee_id, value: 3 }
+              - column: { name: trainer_id, value: 3 }
               - column: { name: training_name, value: "Yoga Flow Intermediate" }
               - column: { name: training_type_id, value: 1 }
               - column: { name: training_date, value: "2026-07-01 10:00:00" }
@@ -311,8 +316,8 @@ databaseChangeLog:
         - insert:
             tableName: trainings
             columns:
-              - column: { name: trainee_id, value: 3 } # Trainee.Ten
-              - column: { name: trainer_id, value: 4 } # Trainer.Eleven
+              - column: { name: trainee_id, value: 3 }
+              - column: { name: trainer_id, value: 4 }
               - column: { name: training_name, value: "Crossfit Speed Run" }
               - column: { name: training_type_id, value: 2 }
               - column: { name: training_date, value: "2026-07-05 18:00:00" }
@@ -320,8 +325,8 @@ databaseChangeLog:
         - insert:
             tableName: trainings
             columns:
-              - column: { name: trainee_id, value: 4 } # Trainee.Eleven
-              - column: { name: trainer_id, value: 4 } # Trainer.Eleven
+              - column: { name: trainee_id, value: 4 }
+              - column: { name: trainer_id, value: 4 }
               - column: { name: training_name, value: "Crossfit Strength Master" }
               - column: { name: training_type_id, value: 2 }
               - column: { name: training_date, value: "2026-08-10 11:00:00" }

@@ -4,6 +4,7 @@ import com.epam.java.specialization.gym_crm.dto.ErrorResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -25,9 +26,7 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-
         log.warn("REST response error - Validation failed. Target errors: {}", errors);
-
         ErrorResponseDto errorDto = ErrorResponseDto.builder()
                 .timestamp(new Date())
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -64,6 +63,20 @@ public class GlobalExceptionHandler {
         log.warn("REST response error - Authentication failed: {}", ex.getMessage());
         ErrorResponseDto errorDto = createBaseErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorDto);
+    }
+
+    @ExceptionHandler(UserBlockedException.class)
+    public ResponseEntity<ErrorResponseDto> handleUserBlocked(UserBlockedException ex) {
+        log.warn("REST response error - User blocked due to brute force protection: {}", ex.getMessage());
+        ErrorResponseDto errorDto = createBaseErrorResponse(HttpStatus.LOCKED, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.LOCKED).body(errorDto);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponseDto> handleAccessDenied(AccessDeniedException ex) {
+        log.warn("REST response error - Access denied: {}", ex.getMessage());
+        ErrorResponseDto errorDto = createBaseErrorResponse(HttpStatus.FORBIDDEN, "Access denied: You do not have permission to access this resource");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorDto);
     }
 
     @ExceptionHandler(IllegalStateException.class)
