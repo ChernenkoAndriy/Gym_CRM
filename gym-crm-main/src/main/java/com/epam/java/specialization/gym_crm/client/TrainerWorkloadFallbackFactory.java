@@ -1,7 +1,6 @@
 package com.epam.java.specialization.gym_crm.client;
 
-import com.epam.java.specialization.gym_crm.dto.external.TrainerWorkloadRequestDto;
-import com.epam.java.specialization.gym_crm.dto.external.TrainerWorkloadResponseDto;
+import com.epam.java.specialization.common.dto.*;
 import com.epam.java.specialization.gym_crm.exception.ServiceUnavailableException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;

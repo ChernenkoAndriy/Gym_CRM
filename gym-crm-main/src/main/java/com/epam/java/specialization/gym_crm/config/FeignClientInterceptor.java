@@ -29,7 +29,7 @@ public class FeignClientInterceptor implements RequestInterceptor {
 
     @Override
     public void apply(RequestTemplate template) {
-        // 1. Прокидання Transaction ID
+        
         String transactionId = MDC.get(TRANSACTION_ID_KEY);
         if (transactionId == null || transactionId.isBlank()) {
             HttpServletRequest currentRequest = getCurrentHttpRequest();
@@ -42,7 +42,7 @@ public class FeignClientInterceptor implements RequestInterceptor {
         }
         template.header(TRANSACTION_ID_HEADER, transactionId);
 
-        // 2. Прокидання Authorization Bearer Token
+        
         HttpServletRequest request = getCurrentHttpRequest();
         String authHeader = null;
         if (request != null) {
@@ -52,7 +52,7 @@ public class FeignClientInterceptor implements RequestInterceptor {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             template.header(AUTHORIZATION_HEADER, authHeader);
         } else {
-            // Якщо виклик ініційовано всередині системи без прямого Authorization хедера в запиті
+            
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
                 String token = jwtService.generateToken(userDetails);

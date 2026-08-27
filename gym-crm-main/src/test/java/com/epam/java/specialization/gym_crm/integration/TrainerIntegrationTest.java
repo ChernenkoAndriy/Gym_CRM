@@ -1,12 +1,10 @@
 package com.epam.java.specialization.gym_crm.integration;
 
+import com.epam.java.specialization.common.dto.*;
 import com.epam.java.specialization.gym_crm.client.TrainerWorkloadClient;
 import com.epam.java.specialization.gym_crm.dto.ActivationRequestDto;
 import com.epam.java.specialization.gym_crm.dto.TrainerRegisterRequestDto;
 import com.epam.java.specialization.gym_crm.dto.TrainerUpdateRequestDto;
-import com.epam.java.specialization.gym_crm.dto.external.MonthWorkloadDto;
-import com.epam.java.specialization.gym_crm.dto.external.TrainerWorkloadResponseDto;
-import com.epam.java.specialization.gym_crm.dto.external.YearWorkloadDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

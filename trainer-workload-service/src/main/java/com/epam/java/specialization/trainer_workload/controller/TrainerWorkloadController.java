@@ -1,7 +1,6 @@
 package com.epam.java.specialization.trainer_workload.controller;
 
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadRequestDto;
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadResponseDto;
+import com.epam.java.specialization.common.dto.*;
 import com.epam.java.specialization.trainer_workload.service.interfaces.TrainerWorkloadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

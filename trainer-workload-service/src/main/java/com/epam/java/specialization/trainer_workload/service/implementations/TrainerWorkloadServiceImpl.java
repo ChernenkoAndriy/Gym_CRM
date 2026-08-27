@@ -1,10 +1,10 @@
 package com.epam.java.specialization.trainer_workload.service.implementations;
 
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadRequestDto;
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadResponseDto;
+import com.epam.java.specialization.common.dto.ActionType;
+import com.epam.java.specialization.common.dto.TrainerWorkloadRequestDto;
+import com.epam.java.specialization.common.dto.TrainerWorkloadResponseDto;
 import com.epam.java.specialization.trainer_workload.exception.EntityNotFoundException;
 import com.epam.java.specialization.trainer_workload.mapper.TrainerWorkloadMapper;
-import com.epam.java.specialization.trainer_workload.model.ActionType;
 import com.epam.java.specialization.trainer_workload.model.MonthWorkload;
 import com.epam.java.specialization.trainer_workload.model.TrainerWorkload;
 import com.epam.java.specialization.trainer_workload.model.YearWorkload;

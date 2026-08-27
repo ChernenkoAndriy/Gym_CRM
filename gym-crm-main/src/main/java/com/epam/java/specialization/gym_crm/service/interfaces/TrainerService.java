@@ -1,7 +1,7 @@
 package com.epam.java.specialization.gym_crm.service.interfaces;
 
+import com.epam.java.specialization.common.dto.*;
 import com.epam.java.specialization.gym_crm.dto.*;
-import com.epam.java.specialization.gym_crm.dto.external.TrainerWorkloadResponseDto;
 
 public interface TrainerService {
     RegistrationResponseDto register(TrainerRegisterRequestDto request);

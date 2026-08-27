@@ -1,4 +1,4 @@
-package com.epam.java.specialization.gym_crm.dto.external;
+package com.epam.java.specialization.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;

@@ -1,7 +1,6 @@
 package com.epam.java.specialization.trainer_workload.controller;
 
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadRequestDto;
-import com.epam.java.specialization.trainer_workload.model.ActionType;
+import com.epam.java.specialization.common.dto.*;
 import com.epam.java.specialization.trainer_workload.repository.TrainerWorkloadRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,7 +1,6 @@
 package com.epam.java.specialization.gym_crm.client;
 
-import com.epam.java.specialization.gym_crm.dto.external.ActionType;
-import com.epam.java.specialization.gym_crm.dto.external.TrainerWorkloadRequestDto;
+import com.epam.java.specialization.common.dto.*;
 import com.epam.java.specialization.gym_crm.exception.ServiceUnavailableException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -3,6 +3,9 @@ application:
     jwt:
       secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
       expiration: 3600000
+    brute-force:
+      max-attempts: 3
+      lock-duration-minutes: 5
 
 spring:
   application:
@@ -13,10 +16,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+    show-sql: false
   liquibase:
     enabled: true
     change-log: classpath:db.changelog/db.changelog-test.yaml
@@ -32,6 +32,7 @@ management:
       show-details: always
     prometheus:
       enabled: true
+
 eureka:
   client:
     enabled: false

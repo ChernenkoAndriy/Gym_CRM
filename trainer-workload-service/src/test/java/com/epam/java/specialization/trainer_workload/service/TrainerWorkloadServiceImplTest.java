@@ -1,10 +1,7 @@
 package com.epam.java.specialization.trainer_workload.service;
 
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadRequestDto;
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadResponseDto;
 import com.epam.java.specialization.trainer_workload.exception.EntityNotFoundException;
 import com.epam.java.specialization.trainer_workload.mapper.TrainerWorkloadMapper;
-import com.epam.java.specialization.trainer_workload.model.ActionType;
 import com.epam.java.specialization.trainer_workload.model.MonthWorkload;
 import com.epam.java.specialization.trainer_workload.model.TrainerWorkload;
 import com.epam.java.specialization.trainer_workload.model.YearWorkload;
@@ -17,15 +14,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import com.epam.java.specialization.common.dto.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;

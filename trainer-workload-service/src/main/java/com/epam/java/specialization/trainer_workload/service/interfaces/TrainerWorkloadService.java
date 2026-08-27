@@ -1,7 +1,7 @@
 package com.epam.java.specialization.trainer_workload.service.interfaces;
 
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadRequestDto;
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadResponseDto;
+import com.epam.java.specialization.common.dto.TrainerWorkloadRequestDto;
+import com.epam.java.specialization.common.dto.TrainerWorkloadResponseDto;
 
 public interface TrainerWorkloadService {
     void processTrainingWorkload(TrainerWorkloadRequestDto request);

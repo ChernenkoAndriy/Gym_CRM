@@ -1,9 +1,10 @@
 version: '3.8'
 
 services:
-  gym-postgres:
+  # ---------------- Infrastructure ----------------
+  postgres-db:
     image: postgres:16-alpine
-    container_name: gym_crm_postgres
+    container_name: gym-crm-postgres
     environment:
       POSTGRES_DB: gym_crm_db
       POSTGRES_USER: gym_admin
@@ -17,11 +18,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
 
-  gym-redis:
+  redis:
     image: redis:7-alpine
-    container_name: gym_crm_redis
+    container_name: gym-crm-redis
     ports:
       - "6379:6379"
     healthcheck:
@@ -29,27 +29,54 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
 
-  gym-crm-app:
-    build: .
-    container_name: gym_crm_app
+  # ---------------- Discovery Server ----------------
+  eureka-server:
+    build:
+      context: ./eureka-server
+    container_name: gym-crm-eureka
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+  # ---------------- Microservices ----------------
+  trainer-workload-service:
+    build:
+      context: ./trainer-workload-service
+    container_name: gym-crm-workload
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+
+  gym-crm-main:
+    build:
+      context: ./gym-crm-main
+    container_name: gym-crm-main
     ports:
       - "8080:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=stg
-      - STG_DB_URL=jdbc:postgresql://gym-postgres:5432/gym_crm_db
-      - STG_DB_USERNAME=gym_admin
-      - STG_DB_PASSWORD=gym_password
-      - STG_REDIS_HOST=gym-redis
-      - STG_REDIS_PORT=6379
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/gym_crm_db
+      SPRING_DATASOURCE_USERNAME: gym_admin
+      SPRING_DATASOURCE_PASSWORD: gym_password
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+      JWT_SECRET_KEY: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
     depends_on:
-      gym-postgres:
+      postgres-db:
         condition: service_healthy
-      gym-redis:
+      redis:
         condition: service_healthy
-    restart: unless-stopped
+      eureka-server:
+        condition: service_started
+      trainer-workload-service:
+        condition: service_started
 
 volumes:
   pgdata:

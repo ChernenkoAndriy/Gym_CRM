@@ -1,9 +1,8 @@
 package com.epam.java.specialization.gym_crm.service.implementations;
 
+import com.epam.java.specialization.common.dto.*;
 import com.epam.java.specialization.gym_crm.client.TrainerWorkloadClient;
 import com.epam.java.specialization.gym_crm.dto.*;
-import com.epam.java.specialization.gym_crm.dto.external.ActionType;
-import com.epam.java.specialization.gym_crm.dto.external.TrainerWorkloadRequestDto;
 import com.epam.java.specialization.gym_crm.exception.EntityNotFoundException;
 import com.epam.java.specialization.gym_crm.exception.InactiveUserException;
 import com.epam.java.specialization.gym_crm.mapper.TrainingMapper;

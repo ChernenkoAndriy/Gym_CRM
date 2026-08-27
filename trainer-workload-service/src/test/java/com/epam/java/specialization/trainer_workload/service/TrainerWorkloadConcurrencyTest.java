@@ -1,16 +1,13 @@
 package com.epam.java.specialization.trainer_workload.service;
 
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadRequestDto;
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadResponseDto;
 import com.epam.java.specialization.trainer_workload.mapper.TrainerWorkloadMapperImpl;
-import com.epam.java.specialization.trainer_workload.model.ActionType;
 import com.epam.java.specialization.trainer_workload.repository.InMemoryTrainerWorkloadRepository;
 import com.epam.java.specialization.trainer_workload.repository.TrainerWorkloadRepository;
 import com.epam.java.specialization.trainer_workload.service.implementations.TrainerWorkloadServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
+import com.epam.java.specialization.common.dto.*;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;

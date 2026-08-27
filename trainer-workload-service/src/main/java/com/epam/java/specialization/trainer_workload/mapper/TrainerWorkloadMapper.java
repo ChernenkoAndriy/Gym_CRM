@@ -1,8 +1,8 @@
 package com.epam.java.specialization.trainer_workload.mapper;
 
-import com.epam.java.specialization.trainer_workload.dto.MonthWorkloadDto;
-import com.epam.java.specialization.trainer_workload.dto.TrainerWorkloadResponseDto;
-import com.epam.java.specialization.trainer_workload.dto.YearWorkloadDto;
+import com.epam.java.specialization.common.dto.MonthWorkloadDto;
+import com.epam.java.specialization.common.dto.TrainerWorkloadResponseDto;
+import com.epam.java.specialization.common.dto.YearWorkloadDto;
 import com.epam.java.specialization.trainer_workload.model.MonthWorkload;
 import com.epam.java.specialization.trainer_workload.model.TrainerWorkload;
 import com.epam.java.specialization.trainer_workload.model.YearWorkload;

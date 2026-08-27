@@ -1,7 +1,6 @@
 package com.epam.java.specialization.gym_crm.client;
 
-import com.epam.java.specialization.gym_crm.dto.external.TrainerWorkloadRequestDto;
-import com.epam.java.specialization.gym_crm.dto.external.TrainerWorkloadResponseDto;
+import com.epam.java.specialization.common.dto.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

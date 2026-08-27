@@ -1,7 +1,7 @@
 package com.epam.java.specialization.gym_crm.controller;
 
+import com.epam.java.specialization.common.dto.*;
 import com.epam.java.specialization.gym_crm.dto.*;
-import com.epam.java.specialization.gym_crm.dto.external.TrainerWorkloadResponseDto;
 import com.epam.java.specialization.gym_crm.service.interfaces.TrainerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

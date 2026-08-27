@@ -3,6 +3,7 @@ package com.epam.java.specialization.gym_crm.integration;
 import com.epam.java.specialization.gym_crm.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -21,7 +22,9 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected UserDetailsService userDetailsService;
 
+    @ServiceConnection
     protected static final PostgreSQLContainer<?> postgresContainer;
+
     protected static final GenericContainer<?> redisContainer;
 
     static {
@@ -37,10 +40,7 @@ public abstract class AbstractIntegrationTest {
     }
 
     @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
+    static void configureDynamicProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.redis.host", redisContainer::getHost);
         registry.add("spring.data.redis.port", () -> redisContainer.getMappedPort(6379));
     }
