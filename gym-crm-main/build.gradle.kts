@@ -17,7 +17,6 @@ repositories {
     mavenCentral()
 }
 
-extra["springCloudVersion"] = "2023.0.3"
 extra["testcontainersVersion"] = "1.21.3"
 
 dependencies {
@@ -33,13 +32,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
-    // Spring Cloud & Eureka
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
-    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
-    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
-
-    // Spring JMS & ActiveMQ
-    implementation("org.springframework.boot:spring-boot-starter-activemq")
+    // Kafka & JSON
+    implementation("org.springframework.kafka:spring-kafka")
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
@@ -67,12 +61,13 @@ dependencies {
 
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
     annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
-
     annotationProcessor("org.hibernate.orm:hibernate-jpamodelgen:6.5.2.Final")
 
     // Tests
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("org.awaitility:awaitility:4.2.0")
 
     // Spring Boot Testcontainers integration
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
@@ -81,6 +76,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:kafka")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
@@ -88,16 +84,10 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok:1.18.34")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
     testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
-    testImplementation("org.apache.activemq:activemq-broker:6.1.3")
-    testImplementation("org.apache.activemq:activemq-kahadb-store:6.1.3")
-    testImplementation("org.awaitility:awaitility:4.2.0")
 }
 
 dependencyManagement {
     imports {
-        mavenBom(
-            "org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}"
-        )
         mavenBom(
             "org.testcontainers:testcontainers-bom:${property("testcontainersVersion")}"
         )

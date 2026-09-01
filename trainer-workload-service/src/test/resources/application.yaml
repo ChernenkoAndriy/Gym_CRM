@@ -1,25 +1,27 @@
 spring:
   application:
     name: trainer-workload-service-test
-  jms:
-    broker-url: vm://localhost?broker.persistent=false
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers:localhost:9092}
+    consumer:
+      group-id: trainer-workload-test-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.epam.java.specialization.common.dto.TrainerWorkloadRequestDto
 
 app:
-  jms:
-    concurrency: 1-2
-    queue:
-      workload: trainer-workload-queue-test
-      dlq: ActiveMQ.DLQ
-    redelivery:
-      max-deliveries: 2
-      initial-delay: 100
-      back-off-multiplier: 1.0
+  kafka:
+    topics:
+      trainer-workload: trainer-workload-topic-test
+      trainer-workload-dlt: trainer-workload-topic-test.DLT
+    retry:
+      max-attempts: 2
+      backoff-interval-ms: 100
 
 application:
   security:
     jwt:
       secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-
-eureka:
-  client:
-    enabled: false

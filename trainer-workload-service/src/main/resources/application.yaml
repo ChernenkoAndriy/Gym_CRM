@@ -6,35 +6,30 @@ spring:
     name: trainer-workload-service
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
-  jms:
-    broker-url: ${ACTIVEMQ_BROKER_URL:tcp://localhost:61616}
-    user: ${ACTIVEMQ_USER:admin}
-    password: ${ACTIVEMQ_PASSWORD:admin}
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:trainer-workload-group}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.epam.java.specialization.common.dto.TrainerWorkloadRequestDto
 
 app:
-  jms:
-    concurrency: ${JMS_CONCURRENCY:3-10}
-    queue:
-      workload: ${WORKLOAD_QUEUE_NAME:trainer-workload-queue}
-      dlq: ${WORKLOAD_DLQ_NAME:ActiveMQ.DLQ}
-    redelivery:
-      max-deliveries: ${JMS_MAX_DELIVERIES:3}
-      initial-delay: ${JMS_INITIAL_DELAY:1000}
-      back-off-multiplier: ${JMS_BACKOFF_MULTIPLIER:2.0}
+  kafka:
+    topics:
+      trainer-workload: ${TRAINER_WORKLOAD_TOPIC:trainer-workload-topic}
+      trainer-workload-dlt: ${TRAINER_WORKLOAD_DLT_TOPIC:trainer-workload-topic.DLT}
+    retry:
+      max-attempts: ${KAFKA_RETRY_MAX_ATTEMPTS:3}
+      backoff-interval-ms: ${KAFKA_RETRY_BACKOFF_MS:1000}
 
 application:
   security:
     jwt:
       secret-key: ${JWT_SECRET_KEY:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
 
 management:
   endpoints:

@@ -25,8 +25,8 @@ class TrainerWorkloadConsumerTest {
     private TrainerWorkloadConsumer consumer;
 
     @Test
-    @DisplayName("Should receive message and delegate processing to TrainerWorkloadService")
-    void receiveWorkloadMessage_Success() {
+    @DisplayName("Should receive Kafka event and delegate processing to TrainerWorkloadService")
+    void consumeWorkloadEvent_Success() {
         TrainerWorkloadRequestDto requestDto = TrainerWorkloadRequestDto.builder()
                 .username("Trainer.Ten")
                 .firstName("Trainer")
@@ -37,21 +37,21 @@ class TrainerWorkloadConsumerTest {
                 .actionType(ActionType.ADD)
                 .build();
 
-        consumer.receiveWorkloadMessage(requestDto);
+        consumer.consumeWorkloadEvent(requestDto, "Trainer.Ten", 0, 100L);
 
         verify(workloadService, times(1)).processTrainingWorkload(requestDto);
     }
 
     @Test
-    @DisplayName("Should rethrow exception on processing failure to trigger redelivery/DLQ")
-    void receiveWorkloadMessage_ExceptionRethrown() {
+    @DisplayName("Should rethrow exception on processing failure to trigger Kafka retry and DLT routing")
+    void consumeWorkloadEvent_ExceptionRethrown() {
         TrainerWorkloadRequestDto requestDto = TrainerWorkloadRequestDto.builder()
                 .username("Trainer.Ten")
                 .build();
 
         doThrow(new RuntimeException("Database error")).when(workloadService).processTrainingWorkload(any());
 
-        assertThatThrownBy(() -> consumer.receiveWorkloadMessage(requestDto))
+        assertThatThrownBy(() -> consumer.consumeWorkloadEvent(requestDto, "Trainer.Ten", 0, 100L))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Database error");
 

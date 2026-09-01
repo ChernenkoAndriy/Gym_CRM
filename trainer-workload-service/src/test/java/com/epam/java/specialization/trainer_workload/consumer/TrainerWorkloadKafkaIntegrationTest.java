@@ -5,18 +5,16 @@ import com.epam.java.specialization.common.dto.TrainerWorkloadRequestDto;
 import com.epam.java.specialization.common.dto.TrainerWorkloadResponseDto;
 import com.epam.java.specialization.trainer_workload.repository.TrainerWorkloadRepository;
 import com.epam.java.specialization.trainer_workload.service.interfaces.TrainerWorkloadService;
-import org.apache.activemq.broker.BrokerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.jms.core.JmsTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
@@ -33,23 +31,16 @@ import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(TrainerWorkloadJmsIntegrationTest.EmbeddedBrokerConfig.class)
-class TrainerWorkloadJmsIntegrationTest {
-
-    @TestConfiguration
-    static class EmbeddedBrokerConfig {
-        @Bean(initMethod = "start", destroyMethod = "stop")
-        public BrokerService brokerService() throws Exception {
-            BrokerService broker = new BrokerService();
-            broker.setPersistent(false);
-            broker.setUseJmx(false);
-            broker.addConnector("vm://localhost");
-            return broker;
-        }
-    }
+@DirtiesContext
+@EmbeddedKafka(
+        partitions = 1,
+        topics = {"${app.kafka.topics.trainer-workload:trainer-workload-topic-test}", "${app.kafka.topics.trainer-workload-dlt:trainer-workload-topic-test.DLT}"},
+        brokerProperties = {"listeners=PLAINTEXT://localhost:9092", "port=9092"}
+)
+class TrainerWorkloadKafkaIntegrationTest {
 
     @Autowired
-    private JmsTemplate jmsTemplate;
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Autowired
     private TrainerWorkloadRepository repository;
@@ -58,10 +49,10 @@ class TrainerWorkloadJmsIntegrationTest {
     private TrainerWorkloadService workloadService;
 
     @SpyBean
-    private TrainerWorkloadDlqConsumer dlqConsumer;
+    private TrainerWorkloadDltConsumer dltConsumer;
 
-    @Value("${app.jms.queue.workload:trainer-workload-queue-test}")
-    private String workloadQueue;
+    @Value("${app.kafka.topics.trainer-workload:trainer-workload-topic-test}")
+    private String workloadTopic;
 
     @BeforeEach
     void setUp() {
@@ -69,9 +60,8 @@ class TrainerWorkloadJmsIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should successfully consume message from queue and update trainer workload in storage")
-    void shouldReceiveMessageAndSaveWorkload() {
-        // Задаємо середину місяця для уникнення зсуву таймзони
+    @DisplayName("Should successfully consume event from Kafka topic and update trainer workload in storage")
+    void shouldReceiveKafkaEventAndSaveWorkload() {
         LocalDate localDate = LocalDate.of(2026, 9, 15);
         Date trainingDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
@@ -85,7 +75,7 @@ class TrainerWorkloadJmsIntegrationTest {
                 .actionType(ActionType.ADD)
                 .build();
 
-        jmsTemplate.convertAndSend(workloadQueue, requestDto);
+        kafkaTemplate.send(workloadTopic, "Trainer.Active", requestDto);
 
         await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
             TrainerWorkloadResponseDto result = workloadService.getTrainerWorkload("Trainer.Active", 2026, 9);
@@ -98,8 +88,8 @@ class TrainerWorkloadJmsIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should retry processing on failure and route message to DLQ after exceeding max-deliveries")
-    void shouldRouteToDlq_WhenProcessingRepeatedlyFails() {
+    @DisplayName("Should retry processing on failure and route message to DLT topic after exceeding max-attempts")
+    void shouldRouteToDlt_WhenProcessingRepeatedlyFails() {
         TrainerWorkloadRequestDto failingDto = TrainerWorkloadRequestDto.builder()
                 .username("Trainer.Fail")
                 .firstName("Fail")
@@ -110,14 +100,14 @@ class TrainerWorkloadJmsIntegrationTest {
                 .actionType(ActionType.ADD)
                 .build();
 
-        doThrow(new RuntimeException("Simulated processing error"))
+        doThrow(new RuntimeException("Simulated Kafka processing error"))
                 .when(workloadService).processTrainingWorkload(any(TrainerWorkloadRequestDto.class));
 
-        jmsTemplate.convertAndSend(workloadQueue, failingDto);
+        kafkaTemplate.send(workloadTopic, "Trainer.Fail", failingDto);
 
-        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+        await().atMost(7, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(workloadService, atLeast(2)).processTrainingWorkload(any(TrainerWorkloadRequestDto.class));
-            verify(dlqConsumer, atLeast(1)).processDlqMessage(any());
+            verify(dltConsumer, atLeast(1)).consumeDeadLetterMessage(any(), any(), any(), any(), any(), any());
         });
     }
 }
