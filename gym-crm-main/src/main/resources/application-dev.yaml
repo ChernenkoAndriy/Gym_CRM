@@ -15,15 +15,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
-  jms:
-    broker-url: tcp://localhost:61616
-    user: admin
-    password: admin
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
 
 app:
-  jms:
-    queue:
-      workload: trainer-workload-queue
+  kafka:
+    topics:
+      trainer-workload: ${TRAINER_WORKLOAD_TOPIC:trainer-workload-topic}
 
 logging:
   level:

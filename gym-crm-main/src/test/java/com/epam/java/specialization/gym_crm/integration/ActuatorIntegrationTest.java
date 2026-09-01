@@ -16,8 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "management.endpoints.web.exposure.include=health,info,metrics,prometheus",
         "management.endpoint.prometheus.enabled=true",
-        "management.prometheus.metrics.export.enabled=true",
-        "management.health.jms.enabled=false"
+        "management.prometheus.metrics.export.enabled=true"
 })
 public class ActuatorIntegrationTest extends AbstractIntegrationTest {
 

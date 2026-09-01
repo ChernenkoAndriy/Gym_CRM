@@ -21,15 +21,13 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
-  jms:
-    broker-url: ${STG_ACTIVEMQ_BROKER_URL:tcp://activemq-stg:61616}
-    user: ${STG_ACTIVEMQ_USER:admin}
-    password: ${STG_ACTIVEMQ_PASSWORD:admin}
+  kafka:
+    bootstrap-servers: ${STG_KAFKA_BOOTSTRAP_SERVERS:kafka-stg:9092}
 
 app:
-  jms:
-    queue:
-      workload: trainer-workload-queue-stg
+  kafka:
+    topics:
+      trainer-workload: ${TRAINER_WORKLOAD_TOPIC:trainer-workload-topic-stg}
 
 logging:
   level:

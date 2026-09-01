@@ -10,17 +10,20 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
-  jms:
-    broker-url: ${ACTIVEMQ_BROKER_URL:tcp://localhost:61616}
-    user: ${ACTIVEMQ_USER:admin}
-    password: ${ACTIVEMQ_PASSWORD:admin}
-    template:
-      default-destination: ${WORKLOAD_QUEUE_NAME:trainer-workload-queue}
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        spring.json.add.type.headers: false
 
 app:
-  jms:
-    queue:
-      workload: ${WORKLOAD_QUEUE_NAME:trainer-workload-queue}
+  kafka:
+    topics:
+      trainer-workload: ${TRAINER_WORKLOAD_TOPIC:trainer-workload-topic}
 
 application:
   security:
@@ -53,12 +56,3 @@ info:
     name: "Gym CRM Application"
     description: "REST API for managing gym trainees, trainers, and training sessions"
     version: "1.0-SNAPSHOT"
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
