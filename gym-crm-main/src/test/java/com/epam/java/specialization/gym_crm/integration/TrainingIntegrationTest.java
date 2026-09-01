@@ -1,8 +1,9 @@
 package com.epam.java.specialization.gym_crm.integration;
 
-import com.epam.java.specialization.gym_crm.client.TrainerWorkloadClient;
 import com.epam.java.specialization.gym_crm.dto.TrainingAddRequestDto;
+import com.epam.java.specialization.gym_crm.service.implementations.TrainerWorkloadProducer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -32,7 +35,12 @@ class TrainingIntegrationTest extends AbstractIntegrationTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private TrainerWorkloadClient trainerWorkloadClient;
+    private TrainerWorkloadProducer workloadProducer;
+
+    @BeforeEach
+    void setUpMockProducer() {
+        doNothing().when(workloadProducer).sendWorkloadRequest(any());
+    }
 
     @Test
     @WithMockUser(username = "Trainee.Ten", roles = "TRAINEE")

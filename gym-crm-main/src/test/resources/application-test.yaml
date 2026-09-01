@@ -20,6 +20,15 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db.changelog/db.changelog-test.yaml
+  jms:
+    broker-url: vm://localhost?broker.persistent=false
+    template:
+      default-destination: trainer-workload-queue-test
+
+app:
+  jms:
+    queue:
+      workload: trainer-workload-queue-test
 
 management:
   endpoints:

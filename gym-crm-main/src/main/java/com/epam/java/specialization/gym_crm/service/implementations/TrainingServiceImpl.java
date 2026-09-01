@@ -1,7 +1,7 @@
 package com.epam.java.specialization.gym_crm.service.implementations;
 
-import com.epam.java.specialization.common.dto.*;
-import com.epam.java.specialization.gym_crm.client.TrainerWorkloadClient;
+import com.epam.java.specialization.common.dto.ActionType;
+import com.epam.java.specialization.common.dto.TrainerWorkloadRequestDto;
 import com.epam.java.specialization.gym_crm.dto.TraineeTrainingResponseDto;
 import com.epam.java.specialization.gym_crm.dto.TrainerTrainingResponseDto;
 import com.epam.java.specialization.gym_crm.dto.TrainingAddRequestDto;
@@ -41,7 +41,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingTypeRepository trainingTypeRepository;
     private final TrainingMapper trainingMapper;
     private final CrmMetrics crmMetrics;
-    private final TrainerWorkloadClient trainerWorkloadClient;
+    private final TrainerWorkloadProducer workloadProducer;
 
     @Override
     @Transactional(readOnly = true)
@@ -153,9 +153,9 @@ public class TrainingServiceImpl implements TrainingService {
                     .actionType(ActionType.ADD)
                     .build();
 
-            log.debug("Sending workload ADD event to microservice for trainer: {}", trainerUsername);
-            trainerWorkloadClient.processWorkload(workloadRequest);
-            log.info("Workload ADD event successfully processed for trainer: {}", trainerUsername);
+            log.debug("Publishing workload ADD message to queue for trainer: {}", trainerUsername);
+            workloadProducer.sendWorkloadRequest(workloadRequest);
+            log.info("Workload ADD message successfully published for trainer: {}", trainerUsername);
         });
     }
 
@@ -194,8 +194,8 @@ public class TrainingServiceImpl implements TrainingService {
         trainingRepository.delete(training);
         log.info("Training session with ID {} successfully deleted from database", id);
 
-        log.debug("Sending workload DELETE event to microservice for trainer: {}", trainerUsername);
-        trainerWorkloadClient.processWorkload(workloadRequest);
-        log.info("Workload DELETE event successfully processed for trainer: {}", trainerUsername);
+        log.debug("Publishing workload DELETE message to queue for trainer: {}", trainerUsername);
+        workloadProducer.sendWorkloadRequest(workloadRequest);
+        log.info("Workload DELETE message successfully published for trainer: {}", trainerUsername);
     }
 }

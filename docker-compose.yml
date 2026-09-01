@@ -78,5 +78,26 @@ services:
       trainer-workload-service:
         condition: service_started
 
+  activemq:
+    image: apache/activemq-classic:5.18.3
+    container_name: gym-crm-activemq
+    ports:
+      - "61616:61616"   # OpenWire порт (для підключення мікросервісів через TCP)
+      - "8161:8161"     # Веб-консоль адміністрування
+    environment:
+      - ACTIVEMQ_ADMIN_LOGIN=admin
+      - ACTIVEMQ_ADMIN_PASSWORD=admin
+    networks:
+      - gym-crm-network
+    healthcheck:
+      test: [ "CMD-SHELL", "nc -z localhost 61616 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   pgdata:
+
+networks:
+  gym-crm-network:
+    driver: bridge

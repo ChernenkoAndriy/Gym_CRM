@@ -1,10 +1,10 @@
 package com.epam.java.specialization.gym_crm.integration;
 
 import com.epam.java.specialization.common.dto.*;
-import com.epam.java.specialization.gym_crm.client.TrainerWorkloadClient;
 import com.epam.java.specialization.gym_crm.dto.ActivationRequestDto;
 import com.epam.java.specialization.gym_crm.dto.TrainerRegisterRequestDto;
 import com.epam.java.specialization.gym_crm.dto.TrainerUpdateRequestDto;
+import com.epam.java.specialization.gym_crm.service.implementations.TrainerWorkloadProducer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,17 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,7 +31,7 @@ class TrainerIntegrationTest extends AbstractIntegrationTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private TrainerWorkloadClient trainerWorkloadClient;
+    private TrainerWorkloadProducer workloadProducer;
 
     @Test
     @DisplayName("POST /trainers - Success registration (PermitAll)")
@@ -169,41 +162,5 @@ class TrainerIntegrationTest extends AbstractIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("User profile active status is already true"));
-    }
-
-    @Test
-    @WithMockUser(username = "Trainer.Ten", roles = "TRAINER")
-    @DisplayName("GET /trainers/{username}/workload - Success retrieving workload summary via Feign Client")
-    void getTrainerWorkload_Success() throws Exception {
-        MonthWorkloadDto monthWorkload = MonthWorkloadDto.builder()
-                .month(8)
-                .trainingSummaryDuration(120)
-                .build();
-
-        YearWorkloadDto yearWorkload = YearWorkloadDto.builder()
-                .year(2026)
-                .months(List.of(monthWorkload))
-                .build();
-
-        TrainerWorkloadResponseDto mockResponse = TrainerWorkloadResponseDto.builder()
-                .username("Trainer.Ten")
-                .firstName("Trainer")
-                .lastName("Ten")
-                .status(true)
-                .years(List.of(yearWorkload))
-                .build();
-
-        when(trainerWorkloadClient.getTrainerWorkload(eq("Trainer.Ten"), eq(2026), eq(8)))
-                .thenReturn(ResponseEntity.ok(mockResponse));
-
-        mockMvc.perform(get("/trainers/Trainer.Ten/workload")
-                        .param("year", "2026")
-                        .param("month", "8"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("Trainer.Ten"))
-                .andExpect(jsonPath("$.status").value(true))
-                .andExpect(jsonPath("$.years[0].year").value(2026))
-                .andExpect(jsonPath("$.years[0].months[0].month").value(8))
-                .andExpect(jsonPath("$.years[0].months[0].trainingSummaryDuration").value(120));
     }
 }

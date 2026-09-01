@@ -1,9 +1,26 @@
 server:
-  port: 8081
+  port: ${PORT:8081}
 
 spring:
   application:
     name: trainer-workload-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  jms:
+    broker-url: ${ACTIVEMQ_BROKER_URL:tcp://localhost:61616}
+    user: ${ACTIVEMQ_USER:admin}
+    password: ${ACTIVEMQ_PASSWORD:admin}
+
+app:
+  jms:
+    concurrency: ${JMS_CONCURRENCY:3-10}
+    queue:
+      workload: ${WORKLOAD_QUEUE_NAME:trainer-workload-queue}
+      dlq: ${WORKLOAD_DLQ_NAME:ActiveMQ.DLQ}
+    redelivery:
+      max-deliveries: ${JMS_MAX_DELIVERIES:3}
+      initial-delay: ${JMS_INITIAL_DELAY:1000}
+      back-off-multiplier: ${JMS_BACKOFF_MULTIPLIER:2.0}
 
 application:
   security:

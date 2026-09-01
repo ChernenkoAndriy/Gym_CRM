@@ -1,7 +1,6 @@
 package com.epam.java.specialization.gym_crm.service.implementations;
 
-import com.epam.java.specialization.common.dto.*;
-import com.epam.java.specialization.gym_crm.client.TrainerWorkloadClient;
+import com.epam.java.specialization.common.dto.TrainerWorkloadResponseDto;
 import com.epam.java.specialization.gym_crm.dto.*;
 import com.epam.java.specialization.gym_crm.exception.EntityNotFoundException;
 import com.epam.java.specialization.gym_crm.mapper.TrainerMapper;
@@ -15,11 +14,12 @@ import com.epam.java.specialization.gym_crm.service.interfaces.TrainerService;
 import com.epam.java.specialization.gym_crm.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
 @Slf4j
 @Service
@@ -33,7 +33,11 @@ public class TrainerServiceImpl implements TrainerService {
     private final CrmMetrics crmMetrics;
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
-    private final TrainerWorkloadClient trainerWorkloadClient;
+    private final TrainerWorkloadProducer workloadProducer;
+    private final RestClient.Builder restClientBuilder;
+
+    @Value("${app.services.trainer-workload-url:http://localhost:8081}")
+    private String workloadServiceUrl;
 
     @Override
     @Transactional
@@ -106,7 +110,16 @@ public class TrainerServiceImpl implements TrainerService {
             log.warn("Workload request rejected: Trainer not found with username: {}", username);
             throw new EntityNotFoundException("Trainer not found with username: " + username);
         }
-        ResponseEntity<TrainerWorkloadResponseDto> response = trainerWorkloadClient.getTrainerWorkload(username, year, month);
-        return response != null ? response.getBody() : null;
+
+        RestClient restClient = restClientBuilder.baseUrl(workloadServiceUrl).build();
+
+        return restClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/workloads/{username}")
+                        .queryParamIfPresent("year", java.util.Optional.ofNullable(year))
+                        .queryParamIfPresent("month", java.util.Optional.ofNullable(month))
+                        .build(username))
+                .retrieve()
+                .body(TrainerWorkloadResponseDto.class);
     }
 }

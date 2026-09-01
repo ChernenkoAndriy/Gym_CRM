@@ -31,6 +31,11 @@ dependencies {
     // Spring Cloud & Service Discovery
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 
+    // Spring JMS & ActiveMQ
+    implementation("org.springframework.boot:spring-boot-starter-activemq")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
     // Metrics & Monitoring
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
@@ -54,11 +59,12 @@ dependencies {
     // Test Dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
-
+    testImplementation("org.awaitility:awaitility:4.2.0")
+    testImplementation("org.apache.activemq:activemq-broker")
+    testImplementation("org.apache.activemq:activemq-kahadb-store")
     testCompileOnly("org.projectlombok:lombok:1.18.30")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
     testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

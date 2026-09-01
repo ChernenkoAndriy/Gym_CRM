@@ -1,12 +1,14 @@
 package com.epam.java.specialization.gym_crm.service.implementations;
 
-import com.epam.java.specialization.gym_crm.client.TrainerWorkloadClient;
+import com.epam.java.specialization.common.dto.ActionType;
+import com.epam.java.specialization.common.dto.TrainerWorkloadRequestDto;
 import com.epam.java.specialization.gym_crm.dto.*;
 import com.epam.java.specialization.gym_crm.exception.EntityNotFoundException;
 import com.epam.java.specialization.gym_crm.mapper.TraineeMapper;
 import com.epam.java.specialization.gym_crm.metrics.CrmMetrics;
 import com.epam.java.specialization.gym_crm.model.Trainee;
 import com.epam.java.specialization.gym_crm.model.Trainer;
+import com.epam.java.specialization.gym_crm.model.Training;
 import com.epam.java.specialization.gym_crm.model.User;
 import com.epam.java.specialization.gym_crm.repository.TraineeRepository;
 import com.epam.java.specialization.gym_crm.repository.TrainerRepository;
@@ -23,6 +25,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,11 +58,11 @@ class TraineeServiceImplTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private TrainerWorkloadProducer workloadProducer;
+
     @InjectMocks
     private TraineeServiceImpl traineeService;
-
-    @Mock
-    private TrainerWorkloadClient trainerWorkloadClient;
 
     @Test
     @DisplayName("Should register new trainee, prepare credentials and return registration details with JWT token")
@@ -147,14 +150,24 @@ class TraineeServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should successfully delete trainee and clear relationship records with trainers")
+    @DisplayName("Should successfully delete trainee, publish DELETE workload events and perform deletion")
     void deleteProfile_ShouldClearRelationshipsAndPerformDeletion() {
         String username = "John.Doe";
-        List<Trainer> trainersList = new ArrayList<>();
-        trainersList.add(Trainer.builder().build());
+        User trainerUser = User.builder().username("Trainer.Max").firstName("Trainer").lastName("Max").isActive(true).build();
+        Trainer trainer = Trainer.builder().user(trainerUser).build();
+
+        Training training = Training.builder()
+                .trainer(trainer)
+                .trainingDate(new Date())
+                .trainingDuration(60)
+                .build();
+
+        List<Training> trainingsList = new ArrayList<>(Collections.singletonList(training));
+
         Trainee trainee = Trainee.builder()
                 .user(User.builder().username(username).build())
-                .trainers(trainersList)
+                .trainings(trainingsList)
+                .trainers(new ArrayList<>(Collections.singletonList(trainer)))
                 .build();
 
         when(traineeRepository.findByUserUsername(username)).thenReturn(Optional.of(trainee));
@@ -162,6 +175,11 @@ class TraineeServiceImplTest {
 
         traineeService.deleteProfile(username);
 
+        verify(workloadProducer, times(1)).sendWorkloadRequest(argThat(dto ->
+                dto.getUsername().equals("Trainer.Max") &&
+                        dto.getActionType() == ActionType.DELETE &&
+                        dto.getTrainingDuration() == 60
+        ));
         verify(traineeRepository, times(1)).delete(trainee);
     }
 

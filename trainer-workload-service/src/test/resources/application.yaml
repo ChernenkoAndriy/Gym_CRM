@@ -1,10 +1,25 @@
-eureka:
-  client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
+spring:
+  application:
+    name: trainer-workload-service-test
+  jms:
+    broker-url: vm://localhost?broker.persistent=false
+
+app:
+  jms:
+    concurrency: 1-2
+    queue:
+      workload: trainer-workload-queue-test
+      dlq: ActiveMQ.DLQ
+    redelivery:
+      max-deliveries: 2
+      initial-delay: 100
+      back-off-multiplier: 1.0
 
 application:
   security:
     jwt:
       secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+
+eureka:
+  client:
+    enabled: false

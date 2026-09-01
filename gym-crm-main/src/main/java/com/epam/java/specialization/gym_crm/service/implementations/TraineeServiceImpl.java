@@ -1,7 +1,7 @@
 package com.epam.java.specialization.gym_crm.service.implementations;
 
-import com.epam.java.specialization.common.dto.*;
-import com.epam.java.specialization.gym_crm.client.TrainerWorkloadClient;
+import com.epam.java.specialization.common.dto.ActionType;
+import com.epam.java.specialization.common.dto.TrainerWorkloadRequestDto;
 import com.epam.java.specialization.gym_crm.dto.*;
 import com.epam.java.specialization.gym_crm.exception.EntityNotFoundException;
 import com.epam.java.specialization.gym_crm.mapper.TraineeMapper;
@@ -36,7 +36,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final CrmMetrics crmMetrics;
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
-    private final TrainerWorkloadClient trainerWorkloadClient;
+    private final TrainerWorkloadProducer workloadProducer;
 
     @Override
     @Transactional
@@ -110,9 +110,9 @@ public class TraineeServiceImpl implements TraineeService {
                             .actionType(ActionType.DELETE)
                             .build();
 
-                    log.debug("Sending workload DELETE event to microservice for trainer: {}", trainerUsername);
-                    trainerWorkloadClient.processWorkload(workloadRequest);
-                    log.info("Successfully processed workload DELETE event for trainer: {}", trainerUsername);
+                    log.debug("Publishing workload DELETE message to queue for trainer: {}", trainerUsername);
+                    workloadProducer.sendWorkloadRequest(workloadRequest);
+                    log.info("Successfully published workload DELETE message for trainer: {}", trainerUsername);
                 }
             }
         }

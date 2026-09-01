@@ -1,22 +1,22 @@
 package com.epam.java.specialization.trainer_workload.controller;
 
-import com.epam.java.specialization.common.dto.*;
+import com.epam.java.specialization.trainer_workload.model.MonthWorkload;
+import com.epam.java.specialization.trainer_workload.model.TrainerWorkload;
+import com.epam.java.specialization.trainer_workload.model.YearWorkload;
 import com.epam.java.specialization.trainer_workload.repository.TrainerWorkloadRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,9 +28,6 @@ class TrainerWorkloadControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
     private TrainerWorkloadRepository repository;
 
     @BeforeEach
@@ -39,42 +36,26 @@ class TrainerWorkloadControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /workloads - Should return 403 Forbidden for unauthenticated requests")
-    void processWorkload_ShouldReturn403_WhenNoAuth() throws Exception {
-        TrainerWorkloadRequestDto request = TrainerWorkloadRequestDto.builder()
-                .username("Trainer.Ten")
-                .firstName("Trainer")
-                .lastName("Ten")
-                .isActive(true)
-                .trainingDate(new Date())
-                .trainingDuration(60)
-                .actionType(ActionType.ADD)
-                .build();
-
-        mockMvc.perform(post("/workloads")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+    @DisplayName("GET /workloads/{username} - Should return 403 Forbidden for unauthenticated requests")
+    void getWorkload_ShouldReturn403_WhenNoAuth() throws Exception {
+        mockMvc.perform(get("/workloads/Trainer.Ten"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(username = "gym-crm-main", roles = "SERVICE")
-    @DisplayName("POST & GET /workloads - Should accept ADD workload, retrieve summary and support filtering")
-    void processWorkload_Success_AndRetrieveFiltered() throws Exception {
-        TrainerWorkloadRequestDto request = TrainerWorkloadRequestDto.builder()
+    @DisplayName("GET /workloads/{username} - Should retrieve summary and support filtering")
+    void getWorkload_Success_AndRetrieveFiltered() throws Exception {
+        MonthWorkload month = MonthWorkload.builder().monthNumber(8).summaryDuration(90).build();
+        YearWorkload year = YearWorkload.builder().yearNumber(2026).months(new ArrayList<>(List.of(month))).build();
+        TrainerWorkload workload = TrainerWorkload.builder()
                 .username("Trainer.Ten")
                 .firstName("Trainer")
                 .lastName("Ten")
                 .isActive(true)
-                .trainingDate(new Date())
-                .trainingDuration(90)
-                .actionType(ActionType.ADD)
+                .years(new ArrayList<>(List.of(year)))
                 .build();
-
-        mockMvc.perform(post("/workloads")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+        repository.save(workload);
 
         mockMvc.perform(get("/workloads/Trainer.Ten"))
                 .andExpect(status().isOk())
@@ -93,18 +74,10 @@ class TrainerWorkloadControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "gym-crm-main", roles = "SERVICE")
-    @DisplayName("POST /workloads - Fail on invalid payload validation")
-    void processWorkload_Fail_Validation() throws Exception {
-        TrainerWorkloadRequestDto request = TrainerWorkloadRequestDto.builder()
-                .username("")
-                .firstName("")
-                .lastName("")
-                .build();
-
-        mockMvc.perform(post("/workloads")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation Failed"));
+    @DisplayName("GET /workloads/{username} - Should return 404 when trainer not found")
+    void getWorkload_NotFound() throws Exception {
+        mockMvc.perform(get("/workloads/NonExistent.Trainer"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Not Found"));
     }
 }

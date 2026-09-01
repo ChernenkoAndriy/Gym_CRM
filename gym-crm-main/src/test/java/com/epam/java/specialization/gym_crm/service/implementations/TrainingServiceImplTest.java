@@ -1,7 +1,6 @@
 package com.epam.java.specialization.gym_crm.service.implementations;
 
 import com.epam.java.specialization.common.dto.*;
-import com.epam.java.specialization.gym_crm.client.TrainerWorkloadClient;
 import com.epam.java.specialization.gym_crm.dto.*;
 import com.epam.java.specialization.gym_crm.exception.EntityNotFoundException;
 import com.epam.java.specialization.gym_crm.exception.InactiveUserException;
@@ -51,7 +50,7 @@ class TrainingServiceImplTest {
     private Timer timer;
 
     @Mock
-    private TrainerWorkloadClient trainerWorkloadClient;
+    private TrainerWorkloadProducer workloadProducer;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
@@ -109,7 +108,7 @@ class TrainingServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should add new training, establish link and notify workload microservice")
+    @DisplayName("Should add new training, establish link and notify workload microservice via message queue")
     void addTraining_ShouldRegisterTrainingAndNotifyWorkloadClient() {
         TrainingAddRequestDto request = TrainingAddRequestDto.builder()
                 .traineeUsername("Trainee.User")
@@ -134,7 +133,7 @@ class TrainingServiceImplTest {
 
         assertThat(trainee.getTrainers()).contains(trainer);
         verify(trainingRepository, times(1)).save(any(Training.class));
-        verify(trainerWorkloadClient, times(1)).processWorkload(argThat(dto ->
+        verify(workloadProducer, times(1)).sendWorkloadRequest(argThat(dto ->
                 dto.getUsername().equals("Trainer.User") &&
                         dto.getActionType() == ActionType.ADD &&
                         dto.getTrainingDuration() == 45
@@ -142,7 +141,7 @@ class TrainingServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should delete training and send DELETE event to workload client")
+    @DisplayName("Should delete training and send DELETE event to workload client via message queue")
     void deleteTraining_ShouldDeleteFromRepoAndSendDeleteAction() {
         User trainerUser = User.builder().username("Trainer.User").firstName("Trainer").lastName("User").isActive(true).build();
         Trainer trainer = Trainer.builder().user(trainerUser).build();
@@ -158,7 +157,7 @@ class TrainingServiceImplTest {
         trainingService.deleteTraining(10L);
 
         verify(trainingRepository, times(1)).delete(training);
-        verify(trainerWorkloadClient, times(1)).processWorkload(argThat(dto ->
+        verify(workloadProducer, times(1)).sendWorkloadRequest(argThat(dto ->
                 dto.getUsername().equals("Trainer.User") &&
                         dto.getActionType() == ActionType.DELETE &&
                         dto.getTrainingDuration() == 60

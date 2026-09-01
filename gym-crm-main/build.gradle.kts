@@ -38,6 +38,11 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
 
+    // Spring JMS & ActiveMQ
+    implementation("org.springframework.boot:spring-boot-starter-activemq")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
     // Database & Migrations
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.liquibase:liquibase-core")
@@ -83,6 +88,9 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok:1.18.34")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
     testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+    testImplementation("org.apache.activemq:activemq-broker:6.1.3")
+    testImplementation("org.apache.activemq:activemq-kahadb-store:6.1.3")
+    testImplementation("org.awaitility:awaitility:4.2.0")
 }
 
 dependencyManagement {
