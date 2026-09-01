@@ -1,6 +1,6 @@
 spring:
   application:
-    name: Gym_CRM
+    name: gym-crm-main
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   data:
@@ -12,13 +12,6 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.yaml
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: all
-      retries: 3
-      properties:
-        spring.json.add.type.headers: false
 
 app:
   kafka:
@@ -47,6 +40,9 @@ management:
         enabled: true
     prometheus:
       enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
   info:
     env:
       enabled: true

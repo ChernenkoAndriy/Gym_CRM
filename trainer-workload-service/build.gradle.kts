@@ -30,6 +30,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
+    // Distributed Tracing & Observability
+    implementation("io.micrometer:micrometer-tracing-bridge-otel")
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp") // Виправлено синтаксис (додано закриваючу дужку)
+
+    // Structured JSON Logging
+    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+
     // Kafka
     implementation("org.springframework.kafka:spring-kafka")
     implementation("com.fasterxml.jackson.core:jackson-databind")
