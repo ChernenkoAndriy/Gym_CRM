@@ -22,7 +22,7 @@ extra["testcontainersVersion"] = "1.21.3"
 dependencies {
 
     // Shared Library
-    implementation("com.epam.java.specialization:gym-crm-common:1.0.0")
+    implementation("com.epam.java.specialization:gym-crm-common:2.0.0")
 
     // Spring Boot Starters
     implementation("org.springframework.boot:spring-boot-starter-web")
