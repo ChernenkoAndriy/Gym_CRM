@@ -12,9 +12,12 @@ import com.epam.java.specialization.gym_crm.repository.TrainingTypeRepository;
 import com.epam.java.specialization.gym_crm.security.JwtService;
 import com.epam.java.specialization.gym_crm.service.interfaces.TrainerService;
 import com.epam.java.specialization.gym_crm.service.interfaces.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final JwtService jwtService;
     private final TrainerWorkloadProducer workloadProducer;
     private final RestClient.Builder restClientBuilder;
+    private final HttpServletRequest currentHttpRequest;
 
     @Value("${app.services.trainer-workload-url:http://localhost:8081}")
     private String workloadServiceUrl;
@@ -111,6 +115,9 @@ public class TrainerServiceImpl implements TrainerService {
             throw new EntityNotFoundException("Trainer not found with username: " + username);
         }
 
+        String authHeader = currentHttpRequest != null ? currentHttpRequest.getHeader(HttpHeaders.AUTHORIZATION) : null;
+        String transactionId = MDC.get("transactionId");
+
         RestClient restClient = restClientBuilder.baseUrl(workloadServiceUrl).build();
 
         return restClient.get()
@@ -119,6 +126,14 @@ public class TrainerServiceImpl implements TrainerService {
                         .queryParamIfPresent("year", java.util.Optional.ofNullable(year))
                         .queryParamIfPresent("month", java.util.Optional.ofNullable(month))
                         .build(username))
+                .headers(httpHeaders -> {
+                    if (authHeader != null && !authHeader.isBlank()) {
+                        httpHeaders.set(HttpHeaders.AUTHORIZATION, authHeader);
+                    }
+                    if (transactionId != null && !transactionId.isBlank()) {
+                        httpHeaders.set("X-Transaction-Id", transactionId);
+                    }
+                })
                 .retrieve()
                 .body(TrainerWorkloadResponseDto.class);
     }

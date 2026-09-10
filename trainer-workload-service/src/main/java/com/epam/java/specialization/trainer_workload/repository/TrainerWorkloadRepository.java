@@ -1,13 +1,20 @@
 package com.epam.java.specialization.trainer_workload.repository;
 
 import com.epam.java.specialization.trainer_workload.model.TrainerWorkload;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
-public interface TrainerWorkloadRepository {
+@Repository
+public interface TrainerWorkloadRepository extends MongoRepository<TrainerWorkload, String> {
+
     Optional<TrainerWorkload> findByUsername(String username);
-    TrainerWorkload save(TrainerWorkload trainerWorkload);
-    boolean existsByUsername(String username);
+
+    List<TrainerWorkload> findByFirstNameAndLastName(String firstName, String lastName);
+
     void deleteByUsername(String username);
-    void clear();
+
+    boolean existsByUsername(String username);
 }

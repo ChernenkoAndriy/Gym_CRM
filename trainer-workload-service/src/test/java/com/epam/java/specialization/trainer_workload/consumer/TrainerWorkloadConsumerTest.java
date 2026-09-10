@@ -37,7 +37,7 @@ class TrainerWorkloadConsumerTest {
                 .actionType(ActionType.ADD)
                 .build();
 
-        consumer.consumeWorkloadEvent(requestDto, "Trainer.Ten", 0, 100L);
+        consumer.consumeWorkloadEvent(requestDto, "Trainer.Ten", 0, 100L, "tx-test-id");
 
         verify(workloadService, times(1)).processTrainingWorkload(requestDto);
     }
@@ -51,7 +51,7 @@ class TrainerWorkloadConsumerTest {
 
         doThrow(new RuntimeException("Database error")).when(workloadService).processTrainingWorkload(any());
 
-        assertThatThrownBy(() -> consumer.consumeWorkloadEvent(requestDto, "Trainer.Ten", 0, 100L))
+        assertThatThrownBy(() -> consumer.consumeWorkloadEvent(requestDto, "Trainer.Ten", 0, 100L, "tx-test-id"))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Database error");
 

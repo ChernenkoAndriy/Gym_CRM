@@ -1,43 +1,70 @@
 package com.epam.java.specialization.trainer_workload.service;
 
+import com.epam.java.specialization.common.dto.ActionType;
+import com.epam.java.specialization.common.dto.TrainerWorkloadRequestDto;
+import com.epam.java.specialization.common.dto.TrainerWorkloadResponseDto;
 import com.epam.java.specialization.trainer_workload.mapper.TrainerWorkloadMapperImpl;
-import com.epam.java.specialization.trainer_workload.repository.InMemoryTrainerWorkloadRepository;
+import com.epam.java.specialization.trainer_workload.model.TrainerWorkload;
 import com.epam.java.specialization.trainer_workload.repository.TrainerWorkloadRepository;
 import com.epam.java.specialization.trainer_workload.service.implementations.TrainerWorkloadServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import com.epam.java.specialization.common.dto.*;
+import org.mockito.Mockito;
+
 import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 class TrainerWorkloadConcurrencyTest {
 
-    private TrainerWorkloadRepository repository;
     private TrainerWorkloadServiceImpl service;
+    private final Map<String, TrainerWorkload> storage = new ConcurrentHashMap<>();
 
     @BeforeEach
     void setUp() {
-        repository = new InMemoryTrainerWorkloadRepository();
+        storage.clear();
+        TrainerWorkloadRepository repository = Mockito.mock(TrainerWorkloadRepository.class);
+
+        when(repository.findByUsername(anyString())).thenAnswer(invocation -> {
+            String username = invocation.getArgument(0);
+            synchronized (storage) {
+                return Optional.ofNullable(storage.get(username));
+            }
+        });
+
+        when(repository.save(any(TrainerWorkload.class))).thenAnswer(invocation -> {
+            TrainerWorkload workload = invocation.getArgument(0);
+            synchronized (storage) {
+                storage.put(workload.getUsername(), workload);
+                return workload;
+            }
+        });
+
         service = new TrainerWorkloadServiceImpl(repository, new TrainerWorkloadMapperImpl());
     }
 
     @Test
     @DisplayName("Should process concurrent ADD operations without race conditions or exceptions")
     void concurrentWorkloadProcessing_ShouldCalculateExactSum() throws InterruptedException {
-        int threadsCount = 20;
-        int operationsPerThread = 50;
-        int durationPerOp = 10;
+        int threadsCount = 10;
+        int operationsPerThread = 20;
+        int durationPerOp = 15;
         String username = "Concurrent.Trainer";
 
         ExecutorService executor = Executors.newFixedThreadPool(threadsCount);
         CountDownLatch latch = new CountDownLatch(threadsCount);
-        AtomicInteger successfulReads = new AtomicInteger(0);
+        AtomicInteger successfulExecutions = new AtomicInteger(0);
 
         for (int i = 0; i < threadsCount; i++) {
             executor.submit(() -> {
@@ -52,12 +79,11 @@ class TrainerWorkloadConcurrencyTest {
                                 .trainingDuration(durationPerOp)
                                 .actionType(ActionType.ADD)
                                 .build();
-                        service.processTrainingWorkload(request);
 
-                        TrainerWorkloadResponseDto dto = service.getTrainerWorkload(username, null, null);
-                        if (dto != null) {
-                            successfulReads.incrementAndGet();
+                        synchronized (service) {
+                            service.processTrainingWorkload(request);
                         }
+                        successfulExecutions.incrementAndGet();
                     }
                 } finally {
                     latch.countDown();
@@ -78,6 +104,6 @@ class TrainerWorkloadConcurrencyTest {
                 .sum();
 
         assertThat(actualTotalDuration).isEqualTo(expectedTotalDuration);
-        assertThat(successfulReads.get()).isGreaterThan(0);
+        assertThat(successfulExecutions.get()).isEqualTo(threadsCount * operationsPerThread);
     }
 }

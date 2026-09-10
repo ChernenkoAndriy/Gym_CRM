@@ -34,6 +34,23 @@ services:
     networks:
       - gym-crm-network
 
+  mongodb:
+    image: mongo:6.0
+    container_name: gym-crm-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=trainer_workload_db
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gym-crm-network
+
   # ==========================================
   # Message Broker (Apache Kafka in KRaft mode)
   # ==========================================
@@ -80,8 +97,11 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/trainer_workload_db
     depends_on:
       kafka:
+        condition: service_healthy
+      mongodb:
         condition: service_healthy
     networks:
       - gym-crm-network
@@ -117,6 +137,7 @@ services:
 volumes:
   postgres_data:
   kafka_data:
+  mongo_data:
 
 networks:
   gym-crm-network:

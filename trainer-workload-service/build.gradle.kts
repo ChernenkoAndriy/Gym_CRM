@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.epam.java.specialization"
-version = "1.0-SNAPSHOT"
+version = "2.0-SNAPSHOT"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -29,6 +29,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 
     // Distributed Tracing & Observability
     implementation("io.micrometer:micrometer-tracing-bridge-otel")

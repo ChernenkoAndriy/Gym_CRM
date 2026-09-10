@@ -1,6 +1,10 @@
 package com.epam.java.specialization.trainer_workload.service;
 
+import com.epam.java.specialization.common.dto.ActionType;
+import com.epam.java.specialization.common.dto.TrainerWorkloadRequestDto;
+import com.epam.java.specialization.common.dto.TrainerWorkloadResponseDto;
 import com.epam.java.specialization.trainer_workload.exception.EntityNotFoundException;
+import com.epam.java.specialization.trainer_workload.exception.InvalidWorkloadRequestException;
 import com.epam.java.specialization.trainer_workload.mapper.TrainerWorkloadMapper;
 import com.epam.java.specialization.trainer_workload.model.MonthWorkload;
 import com.epam.java.specialization.trainer_workload.model.TrainerWorkload;
@@ -14,16 +18,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.epam.java.specialization.common.dto.*;
+
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TrainerWorkloadServiceImplTest {
@@ -46,7 +55,7 @@ class TrainerWorkloadServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should create new record and add training duration when trainer not exists")
+    @DisplayName("Should create new record and add training duration when trainer does not exist")
     void processTrainingWorkload_ShouldAddNewRecord_WhenTrainerDoesNotExist() {
         TrainerWorkloadRequestDto request = TrainerWorkloadRequestDto.builder()
                 .username("Trainer.Ten")
@@ -59,6 +68,7 @@ class TrainerWorkloadServiceImplTest {
                 .build();
 
         when(repository.findByUsername("Trainer.Ten")).thenReturn(Optional.empty());
+        when(repository.save(any(TrainerWorkload.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.processTrainingWorkload(request);
 
@@ -76,6 +86,75 @@ class TrainerWorkloadServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should add year entry when trainer exists but target year is missing")
+    void processTrainingWorkload_ShouldAddYear_WhenYearMissing() {
+        TrainerWorkload existingWorkload = TrainerWorkload.builder()
+                .username("Trainer.Ten")
+                .firstName("Trainer")
+                .lastName("Ten")
+                .isActive(true)
+                .years(new ArrayList<>())
+                .build();
+
+        TrainerWorkloadRequestDto request = TrainerWorkloadRequestDto.builder()
+                .username("Trainer.Ten")
+                .firstName("Trainer")
+                .lastName("Ten")
+                .isActive(true)
+                .trainingDate(trainingDate)
+                .trainingDuration(45)
+                .actionType(ActionType.ADD)
+                .build();
+
+        when(repository.findByUsername("Trainer.Ten")).thenReturn(Optional.of(existingWorkload));
+        when(repository.save(any(TrainerWorkload.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.processTrainingWorkload(request);
+
+        verify(repository, times(1)).save(existingWorkload);
+        assertThat(existingWorkload.getYears()).hasSize(1);
+        assertThat(existingWorkload.getYears().get(0).getYearNumber()).isEqualTo(2026);
+        assertThat(existingWorkload.getYears().get(0).getMonths().get(0).getSummaryDuration()).isEqualTo(45);
+    }
+
+    @Test
+    @DisplayName("Should add month entry when trainer and year exist but month is missing")
+    void processTrainingWorkload_ShouldAddMonth_WhenMonthMissing() {
+        YearWorkload existingYear = YearWorkload.builder()
+                .yearNumber(2026)
+                .months(new ArrayList<>())
+                .build();
+
+        TrainerWorkload existingWorkload = TrainerWorkload.builder()
+                .username("Trainer.Ten")
+                .firstName("Trainer")
+                .lastName("Ten")
+                .isActive(true)
+                .years(new ArrayList<>(java.util.List.of(existingYear)))
+                .build();
+
+        TrainerWorkloadRequestDto request = TrainerWorkloadRequestDto.builder()
+                .username("Trainer.Ten")
+                .firstName("Trainer")
+                .lastName("Ten")
+                .isActive(true)
+                .trainingDate(trainingDate)
+                .trainingDuration(50)
+                .actionType(ActionType.ADD)
+                .build();
+
+        when(repository.findByUsername("Trainer.Ten")).thenReturn(Optional.of(existingWorkload));
+        when(repository.save(any(TrainerWorkload.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.processTrainingWorkload(request);
+
+        verify(repository, times(1)).save(existingWorkload);
+        assertThat(existingYear.getMonths()).hasSize(1);
+        assertThat(existingYear.getMonths().get(0).getMonthNumber()).isEqualTo(7);
+        assertThat(existingYear.getMonths().get(0).getSummaryDuration()).isEqualTo(50);
+    }
+
+    @Test
     @DisplayName("Should subtract training duration on DELETE action and not drop below zero")
     void processTrainingWorkload_ShouldSubtractDuration_WhenActionIsDelete() {
         TrainerWorkload existingWorkload = TrainerWorkload.builder()
@@ -85,7 +164,6 @@ class TrainerWorkloadServiceImplTest {
                 .isActive(true)
                 .years(new ArrayList<>())
                 .build();
-
         YearWorkload year = YearWorkload.builder().yearNumber(2026).months(new ArrayList<>()).build();
         MonthWorkload month = MonthWorkload.builder().monthNumber(7).summaryDuration(100).build();
         year.getMonths().add(month);
@@ -102,11 +180,26 @@ class TrainerWorkloadServiceImplTest {
                 .build();
 
         when(repository.findByUsername("Trainer.Ten")).thenReturn(Optional.of(existingWorkload));
+        when(repository.save(any(TrainerWorkload.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.processTrainingWorkload(request);
 
         verify(repository, times(1)).save(existingWorkload);
         assertThat(month.getSummaryDuration()).isEqualTo(60);
+    }
+
+    @Test
+    @DisplayName("Should throw InvalidWorkloadRequestException when request validation fails")
+    void processTrainingWorkload_ShouldThrowValidationException_WhenInvalidPayload() {
+        TrainerWorkloadRequestDto invalidRequest = TrainerWorkloadRequestDto.builder()
+                .username("")
+                .build();
+
+        assertThatThrownBy(() -> service.processTrainingWorkload(invalidRequest))
+                .isInstanceOf(InvalidWorkloadRequestException.class)
+                .hasMessageContaining("Username is required");
+
+        verify(repository, never()).save(any());
     }
 
     @Test

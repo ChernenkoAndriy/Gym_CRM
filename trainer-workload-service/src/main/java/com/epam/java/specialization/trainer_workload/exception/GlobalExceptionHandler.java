@@ -2,6 +2,7 @@ package com.epam.java.specialization.trainer_workload.exception;
 
 import com.epam.java.specialization.trainer_workload.dto.ErrorResponseDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -20,7 +21,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDto> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
+        ex.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
@@ -36,6 +37,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDto);
     }
 
+    @ExceptionHandler(InvalidWorkloadRequestException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidWorkloadRequest(InvalidWorkloadRequestException ex) {
+        log.warn("Business validation error: {}", ex.getMessage());
+        ErrorResponseDto errorDto = ErrorResponseDto.builder()
+                .timestamp(new Date())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDto);
+    }
+
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleEntityNotFound(EntityNotFoundException ex) {
         log.warn("Entity not found in workload service: {}", ex.getMessage());
@@ -46,6 +59,18 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .build();
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorDto);
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ErrorResponseDto> handleDatabaseException(DataAccessException ex) {
+        log.error("MongoDB data access error: ", ex);
+        ErrorResponseDto errorDto = ErrorResponseDto.builder()
+                .timestamp(new Date())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error("Database Error")
+                .message("Failed to execute database operation")
+                .build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorDto);
     }
 
     @ExceptionHandler(Exception.class)

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class YearWorkload {
+
+    @Field("year_number")
     private int yearNumber;
+
     @Builder.Default
+    @Field("months")
     private List<MonthWorkload> months = new ArrayList<>();
 }

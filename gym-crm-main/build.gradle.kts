@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.epam.java.specialization"
-version = "1.0-SNAPSHOT"
+version = "2.0-SNAPSHOT"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
