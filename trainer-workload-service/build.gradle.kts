@@ -84,6 +84,12 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok:1.18.34")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
     testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+
+    testImplementation(platform("io.cucumber:cucumber-bom:7.18.1"))
+    testImplementation("io.cucumber:cucumber-java")
+    testImplementation("io.cucumber:cucumber-spring")
+    testImplementation("io.cucumber:cucumber-junit-platform-engine")
+    testImplementation("org.junit.platform:junit-platform-suite")
 }
 
 dependencyManagement {
@@ -110,6 +116,20 @@ tasks.withType<Test> {
     useJUnitPlatform()
     systemProperty("api.version", "1.44")
     systemProperty("docker.api.version", "1.44")
+    environment("DOCKER_API_VERSION", "1.44")
+    environment("TESTCONTAINERS_RYUK_DISABLED", "true")
+}
+
+tasks.register<Test>("cucumberTest") {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform()
+    filter {
+        includeTestsMatching("*CucumberTestRunner*")
+    }
+    systemProperty("api.version", "1.44")
+    systemProperty("docker.api.version", "1.44")
+    systemProperty("cucumber.filter.tags", System.getProperty("cucumber.filter.tags", ""))
     environment("DOCKER_API_VERSION", "1.44")
     environment("TESTCONTAINERS_RYUK_DISABLED", "true")
 }

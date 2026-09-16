@@ -19,6 +19,8 @@ repositories {
 
 extra["testcontainersVersion"] = "1.21.3"
 
+val cucumberVersion = "7.20.1"
+
 dependencies {
 
     // Shared Library
@@ -71,6 +73,12 @@ dependencies {
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.awaitility:awaitility:4.2.0")
 
+    // Cucumber
+    testImplementation("io.cucumber:cucumber-java:$cucumberVersion")
+    testImplementation("io.cucumber:cucumber-spring:$cucumberVersion")
+    testImplementation("io.cucumber:cucumber-junit-platform-engine:$cucumberVersion")
+    testImplementation("org.junit.platform:junit-platform-suite:1.10.3")
+
     // Spring Boot Testcontainers integration
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
 
@@ -101,9 +109,7 @@ tasks.withType<JavaCompile> {
 
     options.compilerArgs.addAll(
         listOf(
-            "-parameters",
-            "-Amapstruct.defaultComponentModel=spring",
-            "-Amapstruct.unmappedTargetPolicy=IGNORE"
+            "-parameters", "-Amapstruct.defaultComponentModel=spring", "-Amapstruct.unmappedTargetPolicy=IGNORE"
         )
     )
 }
@@ -112,6 +118,21 @@ tasks.withType<Test> {
     useJUnitPlatform()
     systemProperty("api.version", "1.44")
     systemProperty("docker.api.version", "1.44")
+    systemProperty("cucumber.filter.tags", System.getProperty("cucumber.filter.tags", ""))
+    environment("DOCKER_API_VERSION", "1.44")
+    environment("TESTCONTAINERS_RYUK_DISABLED", "true")
+}
+
+tasks.register<Test>("cucumberTest") {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform()
+    filter {
+        includeTestsMatching("*CucumberTestRunner*")
+    }
+    systemProperty("api.version", "1.44")
+    systemProperty("docker.api.version", "1.44")
+    systemProperty("cucumber.filter.tags", System.getProperty("cucumber.filter.tags", ""))
     environment("DOCKER_API_VERSION", "1.44")
     environment("TESTCONTAINERS_RYUK_DISABLED", "true")
 }
