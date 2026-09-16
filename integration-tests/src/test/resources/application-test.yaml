@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: integration-tests
+
+test:
+  timeouts:
+    async-await-seconds: 10
+    container-startup-minutes: 3
+  services:
+    crm:
+      default-port: 8080
+      health-path: /actuator/health
+    workload:
+      default-port: 8081
+      health-path: /actuator/health
