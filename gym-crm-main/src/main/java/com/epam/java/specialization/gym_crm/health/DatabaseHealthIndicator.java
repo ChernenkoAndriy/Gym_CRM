@@ -3,11 +3,13 @@ package com.epam.java.specialization.gym_crm.health;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Profile("!no-integrations")
 public class DatabaseHealthIndicator implements HealthIndicator {
 
     private final JdbcTemplate jdbcTemplate;

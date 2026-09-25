@@ -57,7 +57,6 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
 
-    // Налаштування для Docker Desktop на Windows (запобігає BadRequestException 400)
     systemProperty("api.version", "1.44")
     systemProperty("docker.api.version", "1.44")
     systemProperty("cucumber.filter.tags", System.getProperty("cucumber.filter.tags", ""))

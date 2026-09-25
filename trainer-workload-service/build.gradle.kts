@@ -31,6 +31,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 
+    implementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring30x:4.11.0")
+
     // Distributed Tracing & Observability
     implementation("io.micrometer:micrometer-tracing-bridge-otel")
     implementation("io.opentelemetry:opentelemetry-exporter-otlp") // Виправлено синтаксис (додано закриваючу дужку)

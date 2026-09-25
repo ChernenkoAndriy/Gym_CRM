@@ -1,10 +1,13 @@
 package com.epam.java.specialization.gym_crm.security;
 
 import com.epam.java.specialization.gym_crm.exception.UserBlockedException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -17,8 +20,12 @@ public class LoginAttemptService {
     private final long lockDurationMinutes;
     private final RedisTemplate<String, Object> redisTemplate;
 
+    // Fallback in-memory сховища для профілю без інтеграцій
+    private final Map<String, Integer> localAttempts = new ConcurrentHashMap<>();
+    private final Map<String, Long> localBlockedUntil = new ConcurrentHashMap<>();
+
     public LoginAttemptService(
-            RedisTemplate<String, Object> redisTemplate,
+            @Autowired(required = false) RedisTemplate<String, Object> redisTemplate,
             @Value("${application.security.brute-force.max-attempts:3}") int maxAttempts,
             @Value("${application.security.brute-force.lock-duration-minutes:5}") long lockDurationMinutes
     ) {
@@ -30,27 +37,40 @@ public class LoginAttemptService {
     public void loginSucceeded(String username, String clientIp) {
         String attemptKey = getAttemptKey(username, clientIp);
         String blockKey = getBlockKey(username, clientIp);
-        redisTemplate.delete(attemptKey);
-        redisTemplate.delete(blockKey);
+
+        if (redisTemplate != null) {
+            redisTemplate.delete(attemptKey);
+            redisTemplate.delete(blockKey);
+        } else {
+            localAttempts.remove(attemptKey);
+            localBlockedUntil.remove(blockKey);
+        }
     }
 
     public void loginFailed(String username, String clientIp) {
         String attemptKey = getAttemptKey(username, clientIp);
         String blockKey = getBlockKey(username, clientIp);
 
-        Long attempts = redisTemplate.opsForValue().increment(attemptKey);
-        if (attempts != null && attempts == 1) {
-            redisTemplate.expire(attemptKey, lockDurationMinutes, TimeUnit.MINUTES);
-        }
+        if (redisTemplate != null) {
+            Long attempts = redisTemplate.opsForValue().increment(attemptKey);
+            if (attempts != null && attempts == 1) {
+                redisTemplate.expire(attemptKey, lockDurationMinutes, TimeUnit.MINUTES);
+            }
 
-        if (attempts != null && attempts >= maxAttempts) {
-            redisTemplate.opsForValue().set(blockKey, System.currentTimeMillis(), lockDurationMinutes, TimeUnit.MINUTES);
+            if (attempts != null && attempts >= maxAttempts) {
+                redisTemplate.opsForValue().set(blockKey, System.currentTimeMillis(), lockDurationMinutes, TimeUnit.MINUTES);
+            }
+        } else {
+            int attempts = localAttempts.merge(attemptKey, 1, Integer::sum);
+            if (attempts >= maxAttempts) {
+                long expirationTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(lockDurationMinutes);
+                localBlockedUntil.put(blockKey, expirationTime);
+            }
         }
     }
 
     public void checkIfBlocked(String username, String clientIp) {
-        String blockKey = getBlockKey(username, clientIp);
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(blockKey))) {
+        if (isBlocked(username, clientIp)) {
             throw new UserBlockedException(
                     String.format("User %s is blocked due to 3 unsuccessful login attempts from IP %s. Try again in %d minutes.",
                             username, clientIp, lockDurationMinutes)
@@ -60,7 +80,22 @@ public class LoginAttemptService {
 
     public boolean isBlocked(String username, String clientIp) {
         String blockKey = getBlockKey(username, clientIp);
-        return Boolean.TRUE.equals(redisTemplate.hasKey(blockKey));
+        if (redisTemplate != null) {
+            return Boolean.TRUE.equals(redisTemplate.hasKey(blockKey));
+        }
+
+        Long blockedUntil = localBlockedUntil.get(blockKey);
+        if (blockedUntil == null) {
+            return false;
+        }
+
+        if (System.currentTimeMillis() > blockedUntil) {
+            localBlockedUntil.remove(blockKey);
+            localAttempts.remove(getAttemptKey(username, clientIp));
+            return false;
+        }
+
+        return true;
     }
 
     private String getAttemptKey(String username, String clientIp) {

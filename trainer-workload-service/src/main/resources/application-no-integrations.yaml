@@ -1,0 +1,20 @@
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 6.0.11
+
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+  kafka:
+    listener:
+      auto-startup: false
+
+app:
+  kafka:
+    topics:
+      trainer-workload: trainer-workload-topic
+      trainer-workload-dlt: trainer-workload-topic.DLT
