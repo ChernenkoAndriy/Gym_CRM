@@ -30,7 +30,7 @@ app:
 
 logging:
   level:
-    root: WARN
+    root: INFO
     com.epam.java.specialization.gym_crm: INFO
     org.springframework.web: WARN
 

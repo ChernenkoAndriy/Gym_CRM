@@ -89,8 +89,8 @@ services:
   # ==========================================
   trainer-workload-service:
     build:
-      context: ./trainer-workload-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: trainer-workload-service/Dockerfile
     container_name: gym-crm-trainer-workload
     ports:
       - "8081:8081"
@@ -108,8 +108,8 @@ services:
 
   gym-crm-main:
     build:
-      context: ./gym-crm-main
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: gym-crm-main/Dockerfile
     container_name: gym-crm-main
     ports:
       - "8080:8080"

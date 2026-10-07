@@ -19,6 +19,6 @@ app:
 
 logging:
   level:
-    root: WARN
+    root: INFO
     com.epam.java.specialization.trainer_workload: INFO
     org.springframework.kafka: WARN

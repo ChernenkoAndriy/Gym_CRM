@@ -22,7 +22,7 @@
     </springProfile>
 
     <springProfile name="prod">
-        <root level="WARN">
+        <root level="INFO">
             <appender-ref ref="CONSOLE" />
         </root>
         <logger name="com.epam.java.specialization.trainer_workload" level="INFO" />
